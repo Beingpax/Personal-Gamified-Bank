@@ -48,83 +48,6 @@ const MAX_FLICK_VELOCITY = 2.8
 const FRICTION_PER_MS = 0.999
 const STOP_VELOCITY = 0.018
 
-let sharedAudioCtx: AudioContext | null = null
-
-function getAudioContext(): AudioContext | null {
-  try {
-    if (!sharedAudioCtx) {
-      const Ctor =
-        window.AudioContext ||
-        (window as unknown as { webkitAudioContext: typeof AudioContext })
-          .webkitAudioContext
-      sharedAudioCtx = new Ctor()
-    }
-    // Safari starts the context suspended; it can only resume from a gesture.
-    if (sharedAudioCtx.state === 'suspended') void sharedAudioCtx.resume()
-    return sharedAudioCtx
-  } catch {
-    return null
-  }
-}
-
-function playBurstSound() {
-  const ctx = getAudioContext()
-  if (!ctx) return
-  const now = ctx.currentTime
-
-  // --- Brushy whoosh: a burst of white noise swept through a bandpass filter.
-  // This is the "pssht" of a real confetti cannon firing.
-  const noiseDuration = 0.7
-  const frameCount = Math.floor(ctx.sampleRate * noiseDuration)
-  const buffer = ctx.createBuffer(1, frameCount, ctx.sampleRate)
-  const data = buffer.getChannelData(0)
-  for (let i = 0; i < frameCount; i += 1) {
-    // Decaying white noise so the brush has a natural tail.
-    data[i] = (Math.random() * 2 - 1) * (1 - i / frameCount)
-  }
-
-  const noise = ctx.createBufferSource()
-  noise.buffer = buffer
-
-  const bandpass = ctx.createBiquadFilter()
-  bandpass.type = 'bandpass'
-  bandpass.Q.value = 0.8
-  bandpass.frequency.setValueAtTime(600, now)
-  bandpass.frequency.exponentialRampToValueAtTime(5000, now + 0.12)
-  bandpass.frequency.exponentialRampToValueAtTime(1600, now + 0.5)
-
-  const highpass = ctx.createBiquadFilter()
-  highpass.type = 'highpass'
-  highpass.frequency.value = 400
-
-  const noiseGain = ctx.createGain()
-  noiseGain.gain.setValueAtTime(0.0001, now)
-  noiseGain.gain.exponentialRampToValueAtTime(0.55, now + 0.015)
-  noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.6)
-
-  noise.connect(bandpass)
-  bandpass.connect(highpass)
-  highpass.connect(noiseGain)
-  noiseGain.connect(ctx.destination)
-  noise.start(now)
-  noise.stop(now + noiseDuration)
-
-  // --- Celebratory pop riding on top of the brush.
-  const pop = ctx.createOscillator()
-  const popGain = ctx.createGain()
-  pop.type = 'triangle'
-  pop.frequency.setValueAtTime(520, now + 0.02)
-  pop.frequency.exponentialRampToValueAtTime(1500, now + 0.1)
-  pop.frequency.exponentialRampToValueAtTime(900, now + 0.26)
-  popGain.gain.setValueAtTime(0.0001, now + 0.02)
-  popGain.gain.exponentialRampToValueAtTime(0.22, now + 0.05)
-  popGain.gain.exponentialRampToValueAtTime(0.001, now + 0.3)
-  pop.connect(popGain)
-  popGain.connect(ctx.destination)
-  pop.start(now + 0.02)
-  pop.stop(now + 0.32)
-}
-
 function createConfettiBurst(originX: number, originY: number): ConfettiParticle[] {
   const particles: ConfettiParticle[] = []
   for (let i = 0; i < CONFETTI_COUNT; i += 1) {
@@ -377,7 +300,6 @@ export function WheelScreen({
 
   function handleYay(event: React.MouseEvent<HTMLButtonElement>) {
     const rect = event.currentTarget.getBoundingClientRect()
-    playBurstSound()
     // Launch the burst from the button the user just clicked.
     fireConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2)
     // Clear the reward right away so the wheel is ready to spin again; the
