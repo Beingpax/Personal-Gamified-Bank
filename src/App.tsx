@@ -195,14 +195,9 @@ function App() {
   function acknowledgeReward() {
     if (!latestReward) return
 
-    setState((current) => ({
-      ...current,
-      rewards: current.rewards.filter(
-        (reward) => reward.id !== latestReward.rewardId,
-      ),
-    }))
+    // Celebrate and clear the reward, staying on the wheel so the user can
+    // spin again while spins remain. The win is already recorded in history.
     setLatestReward(null)
-    setActiveScreen('rewards')
   }
 
   function resetApp() {
@@ -212,6 +207,13 @@ function App() {
     setSelectedDate(todayDateKey())
     setDailyAmount(0)
     setActiveScreen('targets')
+  }
+
+  function confirmReset() {
+    const confirmed = window.confirm(
+      'Reset everything? This clears your targets, daily logs, rewards, and history. This cannot be undone.',
+    )
+    if (confirmed) resetApp()
   }
 
   return (
@@ -230,7 +232,8 @@ function App() {
             canSpin={
               state.spins > 0 && state.rewards.length > 0 && latestReward == null
             }
-            onReset={resetApp}
+            spins={state.spins}
+            onReset={confirmReset}
             setActiveScreen={setActiveScreen}
           />
 

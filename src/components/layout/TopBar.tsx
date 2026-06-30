@@ -1,45 +1,43 @@
-import { ArrowRight, RotateCcw } from 'lucide-react'
+import { RotateCcw, Sparkles } from 'lucide-react'
 import type { Screen } from '../../app/types'
-import { Button } from '../ui/button'
-
-const labels: Record<Screen, string> = {
-  targets: 'All targets',
-  wheel: 'Spin wheel',
-  rewards: 'Rewards',
-}
-
-const titles: Record<Screen, string> = {
-  targets: 'All targets',
-  wheel: 'Spin wheel',
-  rewards: 'Rewards',
-}
 
 export function TopBar({
   activeScreen,
   canSpin,
+  spins,
   onReset,
   setActiveScreen,
 }: {
   activeScreen: Screen
   canSpin: boolean
+  spins: number
   onReset: () => void
   setActiveScreen: (screen: Screen) => void
 }) {
   return (
     <header className="topbar">
-      <div>
-        <p className="screen-label">{labels[activeScreen]}</p>
-        <h1>{titles[activeScreen]}</h1>
-      </div>
+
       <div className="topbar-actions">
-        <Button onClick={onReset} variant="danger">
-          <RotateCcw aria-hidden="true" size={16} />
-          Reset data
-        </Button>
-        <Button disabled={!canSpin} onClick={() => setActiveScreen('wheel')}>
-          <ArrowRight aria-hidden="true" size={16} />
-          Go spin
-        </Button>
+        {canSpin && activeScreen !== 'wheel' && (
+          <button
+            className="spin-cta"
+            onClick={() => setActiveScreen('wheel')}
+            type="button"
+          >
+            <Sparkles aria-hidden="true" size={17} />
+            Spin to win
+            <span className="spin-cta-count">{spins}</span>
+          </button>
+        )}
+        <button
+          className="reset-button"
+          onClick={onReset}
+          title="Reset all data"
+          type="button"
+        >
+          <RotateCcw aria-hidden="true" size={15} />
+          Reset
+        </button>
       </div>
     </header>
   )

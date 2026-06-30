@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'motion/react'
-import { Check, Gift } from 'lucide-react'
+import { Sparkles } from 'lucide-react'
 import type React from 'react'
 import { useEffect, useRef, useState } from 'react'
 import type { RewardHistoryItem, RewardItem, Segment } from '../../app/types'
@@ -15,10 +15,145 @@ type DragState = {
   velocity: number
 }
 
+type ConfettiParticle = {
+  x: number
+  y: number
+  vx: number
+  vy: number
+  gravity: number
+  drag: number
+  w: number
+  h: number
+  color: string
+  rot: number
+  spin: number
+  tilt: number
+  tiltSpeed: number
+  wobble: number
+  wobbleSpeed: number
+  life: number
+  maxLife: number
+  dead: boolean
+}
+
+const CONFETTI_COLORS = ['#f97316', '#a855f7', '#06b6d4', '#eab308', '#ec4899', '#22c55e', '#f43f5e', '#3b82f6']
+
+// A dense canvas confetti cannon. Thousands of pieces are launched from the
+// click point with real launch velocity, then pulled down by gravity with air
+// drag and a fluttering tilt — like a real-life confetti burst.
+const CONFETTI_COUNT = 6000
+
 const MIN_FLICK_VELOCITY = 0.12
 const MAX_FLICK_VELOCITY = 2.8
 const FRICTION_PER_MS = 0.999
 const STOP_VELOCITY = 0.018
+
+let sharedAudioCtx: AudioContext | null = null
+
+function getAudioContext(): AudioContext | null {
+  try {
+    if (!sharedAudioCtx) {
+      const Ctor =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext })
+          .webkitAudioContext
+      sharedAudioCtx = new Ctor()
+    }
+    // Safari starts the context suspended; it can only resume from a gesture.
+    if (sharedAudioCtx.state === 'suspended') void sharedAudioCtx.resume()
+    return sharedAudioCtx
+  } catch {
+    return null
+  }
+}
+
+function playBurstSound() {
+  const ctx = getAudioContext()
+  if (!ctx) return
+  const now = ctx.currentTime
+
+  // --- Brushy whoosh: a burst of white noise swept through a bandpass filter.
+  // This is the "pssht" of a real confetti cannon firing.
+  const noiseDuration = 0.7
+  const frameCount = Math.floor(ctx.sampleRate * noiseDuration)
+  const buffer = ctx.createBuffer(1, frameCount, ctx.sampleRate)
+  const data = buffer.getChannelData(0)
+  for (let i = 0; i < frameCount; i += 1) {
+    // Decaying white noise so the brush has a natural tail.
+    data[i] = (Math.random() * 2 - 1) * (1 - i / frameCount)
+  }
+
+  const noise = ctx.createBufferSource()
+  noise.buffer = buffer
+
+  const bandpass = ctx.createBiquadFilter()
+  bandpass.type = 'bandpass'
+  bandpass.Q.value = 0.8
+  bandpass.frequency.setValueAtTime(600, now)
+  bandpass.frequency.exponentialRampToValueAtTime(5000, now + 0.12)
+  bandpass.frequency.exponentialRampToValueAtTime(1600, now + 0.5)
+
+  const highpass = ctx.createBiquadFilter()
+  highpass.type = 'highpass'
+  highpass.frequency.value = 400
+
+  const noiseGain = ctx.createGain()
+  noiseGain.gain.setValueAtTime(0.0001, now)
+  noiseGain.gain.exponentialRampToValueAtTime(0.55, now + 0.015)
+  noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.6)
+
+  noise.connect(bandpass)
+  bandpass.connect(highpass)
+  highpass.connect(noiseGain)
+  noiseGain.connect(ctx.destination)
+  noise.start(now)
+  noise.stop(now + noiseDuration)
+
+  // --- Celebratory pop riding on top of the brush.
+  const pop = ctx.createOscillator()
+  const popGain = ctx.createGain()
+  pop.type = 'triangle'
+  pop.frequency.setValueAtTime(520, now + 0.02)
+  pop.frequency.exponentialRampToValueAtTime(1500, now + 0.1)
+  pop.frequency.exponentialRampToValueAtTime(900, now + 0.26)
+  popGain.gain.setValueAtTime(0.0001, now + 0.02)
+  popGain.gain.exponentialRampToValueAtTime(0.22, now + 0.05)
+  popGain.gain.exponentialRampToValueAtTime(0.001, now + 0.3)
+  pop.connect(popGain)
+  popGain.connect(ctx.destination)
+  pop.start(now + 0.02)
+  pop.stop(now + 0.32)
+}
+
+function createConfettiBurst(originX: number, originY: number): ConfettiParticle[] {
+  const particles: ConfettiParticle[] = []
+  for (let i = 0; i < CONFETTI_COUNT; i += 1) {
+    // Launch in an upward fan: straight up (-90°) with a wide spread sideways.
+    const angle = -Math.PI / 2 + (Math.random() - 0.5) * (Math.PI * 0.9)
+    const speed = 7 + Math.random() * 21
+    particles.push({
+      x: originX + (Math.random() - 0.5) * 24,
+      y: originY + (Math.random() - 0.5) * 12,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      gravity: 0.26 + Math.random() * 0.14,
+      drag: 0.984 + Math.random() * 0.012,
+      w: 5 + Math.random() * 7,
+      h: 7 + Math.random() * 9,
+      color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+      rot: Math.random() * Math.PI * 2,
+      spin: (Math.random() - 0.5) * 0.4,
+      tilt: Math.random() * Math.PI * 2,
+      tiltSpeed: (Math.random() - 0.5) * 0.28,
+      wobble: Math.random() * Math.PI * 2,
+      wobbleSpeed: 0.04 + Math.random() * 0.06,
+      life: 0,
+      maxLife: 200 + Math.random() * 160,
+      dead: false,
+    })
+  }
+  return particles
+}
 
 export function WheelScreen({
   completeSpin,
@@ -55,6 +190,8 @@ export function WheelScreen({
   })
   const [isDragging, setIsDragging] = useState(false)
   const [hint, setHint] = useState('Grab the wheel and flick it.')
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const confettiRafRef = useRef<number | null>(null)
   const canUseWheel =
     spins > 0 && rewards.length > 0 && !isSpinning && latestReward == null
 
@@ -65,8 +202,78 @@ export function WheelScreen({
   useEffect(() => {
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current)
+      if (confettiRafRef.current) cancelAnimationFrame(confettiRafRef.current)
     }
   }, [])
+
+  function fireConfetti(originX: number, originY: number) {
+    const canvas = canvasRef.current
+    const ctx = canvas?.getContext('2d')
+    if (!canvas || !ctx) return
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+    const dpr = Math.min(window.devicePixelRatio || 1, 2)
+    const width = window.innerWidth
+    const height = window.innerHeight
+    canvas.width = width * dpr
+    canvas.height = height * dpr
+    canvas.style.width = `${width}px`
+    canvas.style.height = `${height}px`
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+
+    const particles = createConfettiBurst(originX, originY)
+    if (confettiRafRef.current) cancelAnimationFrame(confettiRafRef.current)
+
+    const step = () => {
+      ctx.clearRect(0, 0, width, height)
+      let alive = 0
+
+      for (const p of particles) {
+        if (p.dead) continue
+
+        p.life += 1
+        p.vy += p.gravity
+        p.vx *= p.drag
+        p.vy *= p.drag
+        p.wobble += p.wobbleSpeed
+        p.x += p.vx + Math.sin(p.wobble) * 0.9
+        p.y += p.vy
+        p.rot += p.spin
+        p.tilt += p.tiltSpeed
+
+        const fadeStart = p.maxLife * 0.7
+        const opacity =
+          p.life > fadeStart
+            ? Math.max(0, 1 - (p.life - fadeStart) / (p.maxLife - fadeStart))
+            : 1
+
+        if (p.y > height + 50 || p.life > p.maxLife || opacity <= 0) {
+          p.dead = true
+          continue
+        }
+
+        alive += 1
+        ctx.save()
+        ctx.translate(p.x, p.y)
+        ctx.rotate(p.rot)
+        ctx.globalAlpha = opacity
+        ctx.fillStyle = p.color
+        // Vertical squash by the tilt simulates a thin sheet fluttering.
+        ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h * Math.abs(Math.cos(p.tilt)) + 1)
+        ctx.restore()
+      }
+
+      if (alive > 0) {
+        confettiRafRef.current = requestAnimationFrame(step)
+      } else {
+        ctx.clearRect(0, 0, width, height)
+        confettiRafRef.current = null
+      }
+    }
+
+    confettiRafRef.current = requestAnimationFrame(step)
+  }
 
   function getPointerAngle(event: React.PointerEvent<HTMLElement>) {
     const rect = event.currentTarget.getBoundingClientRect()
@@ -168,8 +375,24 @@ export function WheelScreen({
     animationRef.current = requestAnimationFrame(step)
   }
 
+  function handleYay(event: React.MouseEvent<HTMLButtonElement>) {
+    const rect = event.currentTarget.getBoundingClientRect()
+    playBurstSound()
+    // Launch the burst from the button the user just clicked.
+    fireConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2)
+    // Clear the reward right away so the wheel is ready to spin again; the
+    // confetti keeps flying over the top on its own full-screen canvas.
+    onAcknowledgeReward()
+  }
+
   return (
     <div className="wheel-layout">
+      <canvas
+        ref={canvasRef}
+        className="confetti-canvas"
+        aria-hidden="true"
+      />
+
       <section className="wheel-copy">
         <p className="panel-kicker">Available spins</p>
         <strong>{spins}</strong>
@@ -217,23 +440,20 @@ export function WheelScreen({
           {latestReward ? (
             <motion.div
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              className="result-card"
+              className="result-reward"
               exit={{ opacity: 0, y: -8, scale: 0.98 }}
-              initial={{ opacity: 0, y: 10, scale: 0.98 }}
+              initial={{ opacity: 0, y: 12, scale: 0.96 }}
               key={latestReward.id}
-              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
             >
-              <div>
-                <Check aria-hidden="true" size={18} />
-              </div>
-              <p>Reward earned</p>
-              <strong>{latestReward.rewardLabel}</strong>
+              <p className="panel-kicker result-kicker">Reward unlocked</p>
+              <strong className="result-label">{latestReward.rewardLabel}</strong>
               <button
-                className="claim-reward-button"
-                onClick={onAcknowledgeReward}
+                className="yay-button"
+                onClick={handleYay}
                 type="button"
               >
-                Get reward
+                Yay!
               </button>
             </motion.div>
           ) : (
@@ -244,8 +464,8 @@ export function WheelScreen({
               initial={{ opacity: 0 }}
               key="empty-result"
             >
-              <Gift aria-hidden="true" size={18} />
-              <p>Your next result will land here.</p>
+              <Sparkles aria-hidden="true" size={20} />
+              <p>Flick the wheel to reveal your reward</p>
             </motion.div>
           )}
         </AnimatePresence>

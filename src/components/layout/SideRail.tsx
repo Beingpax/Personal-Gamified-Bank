@@ -46,7 +46,7 @@ export function SideRail({
       </nav>
 
       <div className="rail-balance">
-        <span>Total logged</span>
+        <span>Total earned</span>
         <strong>{formatCurrency(earnedTotal)}</strong>
         <small>{spins} spins available</small>
       </div>
