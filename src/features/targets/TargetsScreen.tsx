@@ -104,15 +104,18 @@ export function TargetsScreen({
             Date
             <Input
               aria-label="Daily log date"
+              disabled
+              max={selectedDate}
+              min={selectedDate}
               type="date"
               value={selectedDate}
               onChange={(event) => setSelectedDate(event.target.value)}
             />
           </label>
           <label className="field-label">
-            Dollars for this day
+            Dollars earned today
             <Input
-              aria-label="Dollars for this day"
+              aria-label="Dollars earned today"
               disabled={selectedLogIsLocked}
               min={0}
               type="number"

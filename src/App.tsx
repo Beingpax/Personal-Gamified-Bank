@@ -82,6 +82,7 @@ function App() {
 
   function saveDailyLog() {
     if (!isDateKey(selectedDate)) return
+    if (selectedDate !== todayDateKey()) return
     if (selectedLogIsLocked) return
 
     const amount = Math.max(0, Number(dailyAmount) || 0)
@@ -172,7 +173,7 @@ function App() {
   }
 
   function updateSelectedDate(value: string) {
-    if (isDateKey(value)) setSelectedDate(value)
+    if (isDateKey(value) && value === todayDateKey()) setSelectedDate(value)
   }
 
   function completeSpin(reward: RewardItem, finalRotation: number) {
@@ -227,7 +228,7 @@ function App() {
         />
 
         <section className="workspace">
-          <TopBar onReset={confirmReset} />
+          <TopBar activeScreen={activeScreen} onReset={confirmReset} />
 
           <AnimatePresence mode="wait">
             {activeScreen === 'targets' && (
