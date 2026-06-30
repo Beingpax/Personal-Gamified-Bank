@@ -227,15 +227,7 @@ function App() {
         />
 
         <section className="workspace">
-          <TopBar
-            activeScreen={activeScreen}
-            canSpin={
-              state.spins > 0 && state.rewards.length > 0 && latestReward == null
-            }
-            spins={state.spins}
-            onReset={confirmReset}
-            setActiveScreen={setActiveScreen}
-          />
+          <TopBar onReset={confirmReset} />
 
           <AnimatePresence mode="wait">
             {activeScreen === 'targets' && (

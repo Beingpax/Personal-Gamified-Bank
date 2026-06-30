@@ -86,10 +86,10 @@ export function TargetsScreen({
 
       <section className="daily-panel">
         <div className="daily-panel-copy">
-          <p className="panel-kicker">Daily dollars</p>
+          <p className="panel-kicker">Daily logging</p>
           <h2>{formatDay(selectedDate)}</h2>
           <p>
-            Save one total for the selected day. Missing earlier days stay
+            Save your daily logs when you are ready. Missing earlier days stay
             empty.
           </p>
         </div>

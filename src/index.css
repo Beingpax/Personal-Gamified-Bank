@@ -366,48 +366,6 @@ button:disabled {
   margin-left: auto;
 }
 
-.spin-cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  height: 46px;
-  border-radius: var(--radius-md);
-  border: 1.5px solid var(--ink);
-  background: linear-gradient(150deg, var(--grape), oklch(0.5 0.225 300));
-  padding: 0 18px;
-  color: white;
-  font-size: 0.9375rem;
-  font-weight: 700;
-  box-shadow: var(--sh);
-  transition:
-    transform 120ms cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 120ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.spin-cta:hover {
-  transform: translate(-1px, -1px);
-  box-shadow: var(--sh-lg);
-}
-
-.spin-cta:active {
-  transform: translate(2px, 3px);
-  box-shadow: 1px 1px 0 var(--ink);
-}
-
-.spin-cta-count {
-  display: grid;
-  min-width: 24px;
-  height: 24px;
-  place-items: center;
-  padding: 0 6px;
-  border-radius: var(--pill);
-  background: oklch(1 0 0 / 0.22);
-  font-family: var(--font-display);
-  font-size: 0.875rem;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-}
-
 .reset-button {
   display: inline-flex;
   align-items: center;
@@ -1402,23 +1360,70 @@ button:disabled {
 
 /* Empty states */
 .empty-message {
-  border-color: var(--border);
-  background: var(--surface-strong);
+  display: grid;
+  min-height: 160px;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  border-radius: var(--radius-md);
+  border: 1.5px dashed var(--border-strong);
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      oklch(1 0 0 / 0.74),
+      transparent 44%
+    ),
+    linear-gradient(180deg, var(--surface), var(--surface-strong));
+  padding: 28px 22px;
+  text-align: center;
 }
 
 .empty-message svg {
-  width: 44px;
-  height: 44px;
+  display: block;
+  width: 46px;
+  height: 46px;
+  margin-bottom: 4px;
   padding: 11px;
   border-radius: 14px;
-  border: 1.5px solid var(--border);
+  border: 1.5px solid var(--ink);
   background: var(--surface);
-  color: var(--primary);
+  color: var(--primary-active);
+  box-shadow: 2px 2px 0 var(--ink);
 }
 
 .empty-message strong {
-  margin-top: 6px;
+  display: block;
+  max-width: 24ch;
+  color: var(--ink);
+  font-family: var(--font-display);
   font-size: 1.125rem;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+}
+
+.empty-message span {
+  display: block;
+  max-width: 34ch;
+  color: var(--muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.reward-list .empty-message svg {
+  background: var(--grape-soft);
+  color: var(--grape);
+}
+
+.history-list .empty-message svg {
+  background: var(--gold-soft);
+  color: var(--gold-deep);
+}
+
+.ledger-list .empty-message svg {
+  background: var(--primary-soft);
+  color: var(--primary-active);
 }
 
 /* ---------- Responsive ---------- */
@@ -1515,11 +1520,6 @@ button:disabled {
 
   .topbar-actions {
     justify-content: stretch;
-  }
-
-  .spin-cta {
-    flex: 1 1 auto;
-    justify-content: center;
   }
 
   .rail-nav {
