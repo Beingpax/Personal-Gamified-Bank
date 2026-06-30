@@ -47,8 +47,6 @@ Personal Bank stores all data in the browser with `localStorage` under the key `
 
 Because storage is local to the browser, clearing site data or using another browser/device will not carry your logs, targets, rewards, or history with it.
 
-The app also reads the legacy key `reward-cockpit-money-v1` so older saved data can be migrated automatically.
-
 ## Tech Stack
 
 - React 19

@@ -188,16 +188,20 @@ function App() {
     setIsSpinning(false)
     setState((current) => ({
       ...current,
-      pendingRewardRemovalIds: current.pendingRewardRemovalIds.includes(
-        reward.id,
-      )
-        ? current.pendingRewardRemovalIds
-        : [...current.pendingRewardRemovalIds, reward.id],
       history: [earnedReward, ...current.history].slice(0, 60),
     }))
   }
 
   function acknowledgeReward() {
+    if (!latestReward) return
+
+    setState((current) => ({
+      ...current,
+      rewards: current.rewards.filter(
+        (reward) => reward.id !== latestReward.rewardId,
+      ),
+    }))
+    setLatestReward(null)
     setActiveScreen('rewards')
   }
 
@@ -303,14 +307,10 @@ function reconcileTargetProgress(
   const unlockedTargetIds = targets
     .filter((target) => earnedTotal >= target.amount)
     .map((target) => target.id)
-  const spentTargetIds = resolveSpentTargetIds(
-    current,
-    targets,
-    unlockedTargetIds,
-  )
+  const spentTargetIds = getExistingSpentTargetIds(current, targets)
   const spentSpinCount = Math.max(
     0,
-    Number.isFinite(current.spentSpinCount) ? current.spentSpinCount : 0,
+    current.spentSpinCount,
     spentTargetIds.length,
   )
 
@@ -325,30 +325,10 @@ function reconcileTargetProgress(
   }
 }
 
-function resolveSpentTargetIds(
-  current: AppState,
-  targets: MoneyTarget[],
-  unlockedTargetIds: string[],
-) {
+function getExistingSpentTargetIds(current: AppState, targets: MoneyTarget[]) {
   const targetIds = new Set(targets.map((target) => target.id))
-  const spentTargetIds = current.spentTargetIds.filter((id) =>
-    targetIds.has(id),
-  )
-  const spentTargetIdSet = new Set(spentTargetIds)
-  const spentSpinCount = Number.isFinite(current.spentSpinCount)
-    ? Math.max(0, current.spentSpinCount)
-    : 0
-  const missingCount = Math.max(0, spentSpinCount - spentTargetIds.length)
-  const migratedTargetIds = targets
-    .filter(
-      (target) =>
-        unlockedTargetIds.includes(target.id) && !spentTargetIdSet.has(target.id),
-    )
-    .sort((a, b) => a.amount - b.amount)
-    .slice(0, missingCount)
-    .map((target) => target.id)
 
-  return [...spentTargetIds, ...migratedTargetIds]
+  return current.spentTargetIds.filter((id) => targetIds.has(id))
 }
 
 function getNextSpendableTargetId(current: AppState) {

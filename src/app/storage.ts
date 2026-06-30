@@ -1,4 +1,4 @@
-import { LEGACY_STORAGE_KEYS, STORAGE_KEY } from './constants'
+import { STORAGE_KEY } from './constants'
 import { normalizeDailyLogs } from './dailyLogs'
 import type { AppState } from './types'
 
@@ -7,7 +7,6 @@ export function createInitialState(): AppState {
     spins: 0,
     spentSpinCount: 0,
     spentTargetIds: [],
-    pendingRewardRemovalIds: [],
     unlockedTargetIds: [],
     targets: [
       { id: crypto.randomUUID(), amount: 1000 },
@@ -28,31 +27,13 @@ export function createInitialState(): AppState {
 
 export function loadState(): AppState {
   try {
-    const raw = getStoredState()
+    const raw = window.localStorage.getItem(STORAGE_KEY)
     if (!raw) return createInitialState()
-    const parsed = JSON.parse(raw)
-    const fallback = createInitialState()
-    const pendingRewardRemovalIds = parsed.pendingRewardRemovalIds ?? []
-    const rewards = (parsed.rewards ?? fallback.rewards).filter(
-      (reward: { id: string }) => !pendingRewardRemovalIds.includes(reward.id),
-    )
+    const parsed = JSON.parse(raw) as AppState
 
     return {
-      ...fallback,
       ...parsed,
-      dailyLogs: normalizeDailyLogs(parsed.dailyLogs ?? []),
-      rewards,
-      pendingRewardRemovalIds: [],
-      spentSpinCount:
-        typeof parsed.spentSpinCount === 'number' &&
-        Number.isFinite(parsed.spentSpinCount)
-          ? Math.max(0, parsed.spentSpinCount)
-          : Math.max(
-              0,
-              (parsed.unlockedTargetIds?.length ?? 0) - (parsed.spins ?? 0),
-            ),
-      spentTargetIds: parsed.spentTargetIds ?? [],
-      unlockedTargetIds: parsed.unlockedTargetIds ?? [],
+      dailyLogs: normalizeDailyLogs(parsed.dailyLogs),
     }
   } catch {
     return createInitialState()
@@ -67,16 +48,4 @@ export function persistState(state: AppState) {
       dailyLogs: normalizeDailyLogs(state.dailyLogs),
     }),
   )
-}
-
-function getStoredState() {
-  const current = window.localStorage.getItem(STORAGE_KEY)
-  if (current) return current
-
-  for (const key of LEGACY_STORAGE_KEYS) {
-    const legacy = window.localStorage.getItem(key)
-    if (legacy) return legacy
-  }
-
-  return null
 }

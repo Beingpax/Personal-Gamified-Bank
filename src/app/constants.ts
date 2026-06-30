@@ -1,6 +1,5 @@
 export const APP_NAME = 'Personal Bank'
 export const STORAGE_KEY = 'personal-bank-v1'
-export const LEGACY_STORAGE_KEYS = ['reward-cockpit-money-v1']
 
 export const segmentColors = [
   'oklch(0.645 0.190 36)',

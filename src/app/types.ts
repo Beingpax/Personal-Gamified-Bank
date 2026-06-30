@@ -19,7 +19,7 @@ export type RewardItem = {
 
 export type RewardHistoryItem = {
   id: string
-  rewardId?: string
+  rewardId: string
   rewardLabel: string
   createdAt: string
 }
@@ -32,7 +32,6 @@ export type AppState = {
   spins: number
   spentSpinCount: number
   spentTargetIds: string[]
-  pendingRewardRemovalIds: string[]
   unlockedTargetIds: string[]
 }
 
