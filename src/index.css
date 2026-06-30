@@ -366,6 +366,106 @@ button:disabled {
   margin-left: auto;
 }
 
+.sync-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.sync-status,
+.account-row,
+.login-form {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  gap: 8px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.sync-status {
+  padding: 0 11px;
+}
+
+.sync-status svg {
+  color: var(--sky);
+}
+
+.account-row {
+  max-width: min(360px, 70vw);
+  padding: 0 6px 0 11px;
+}
+
+.account-row > span {
+  overflow: hidden;
+  max-width: 210px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.icon-action {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+}
+
+.icon-action:hover {
+  background: var(--surface-strong);
+  color: var(--ink);
+}
+
+.login-form {
+  overflow: hidden;
+  padding: 0 5px 0 10px;
+}
+
+.login-form input {
+  width: min(210px, 42vw);
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  outline: none;
+}
+
+.login-form button {
+  display: inline-flex;
+  height: 28px;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--ink);
+  padding: 0 10px;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.login-form button:disabled,
+.login-form input:disabled {
+  opacity: 0.55;
+}
+
+.auth-message {
+  flex-basis: 100%;
+  margin: -2px 0 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+  text-align: right;
+}
+
 .reset-button {
   display: inline-flex;
   align-items: center;
@@ -1520,6 +1620,30 @@ button:disabled {
 
   .topbar-actions {
     justify-content: stretch;
+  }
+
+  .sync-panel,
+  .login-form,
+  .account-row,
+  .reset-button {
+    width: 100%;
+  }
+
+  .sync-panel {
+    justify-content: stretch;
+  }
+
+  .sync-status {
+    flex: 1 1 100%;
+  }
+
+  .login-form input {
+    flex: 1 1 auto;
+    width: auto;
+  }
+
+  .auth-message {
+    text-align: left;
   }
 
   .rail-nav {

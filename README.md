@@ -43,9 +43,28 @@ The rewards screen lets you manage the wheel contents and see previous results. 
 
 ## Data Storage
 
-Personal Bank stores all data in the browser with `localStorage` under the key `personal-bank-v1`. There is no account system, backend server, cloud sync, or database.
+Personal Bank stores data locally first in IndexedDB, then syncs to Supabase when you are signed in and online. Existing `localStorage` data under `personal-bank-v1` is migrated into IndexedDB the first time the new storage layer opens.
 
-Because storage is local to the browser, clearing site data or using another browser/device will not carry your logs, targets, rewards, or history with it.
+The app stays usable offline. Local changes are queued and uploaded to Supabase when the browser comes back online.
+
+## Supabase Setup
+
+Database changes are managed through Supabase CLI migrations. This project is linked to the Supabase project, and the current schema lives in `supabase/migrations/`.
+
+Apply pending migrations:
+
+```bash
+npx supabase db push
+```
+
+Set the frontend environment variables:
+
+```bash
+VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_your_key
+```
+
+Enable email login in Supabase Auth. Magic-link login is used by default.
 
 ## Tech Stack
 
@@ -53,6 +72,8 @@ Because storage is local to the browser, clearing site data or using another bro
 - TypeScript
 - Vite
 - Tailwind CSS
+- Supabase Auth and Postgres
+- Dexie for IndexedDB
 - Motion for screen/result animation
 - Lucide React icons
 

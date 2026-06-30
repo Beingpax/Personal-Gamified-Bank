@@ -88,7 +88,20 @@ function App() {
         />
 
         <section className="workspace">
-          <TopBar activeScreen={activeScreen} onReset={confirmReset} />
+          <TopBar
+            activeScreen={activeScreen}
+            authEmail={bank.authEmail}
+            authMessage={bank.authMessage}
+            isSupabaseConfigured={bank.isSupabaseConfigured}
+            onReset={confirmReset}
+            pendingChangeCount={bank.pendingChangeCount}
+            sessionEmail={bank.session?.user.email}
+            setAuthEmail={bank.setAuthEmail}
+            signInWithEmail={bank.signInWithEmail}
+            signOut={bank.signOut}
+            syncNow={bank.syncNow}
+            syncStatus={bank.syncStatus}
+          />
 
           <AnimatePresence mode="wait">
             {activeScreen === 'targets' && (
