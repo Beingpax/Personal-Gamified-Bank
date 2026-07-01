@@ -2,6 +2,18 @@ import { normalizeDailyLogs } from './dailyLogs'
 import { totalEarned } from './progress'
 import type { AppState, DailyLog, MoneyTarget } from './types'
 
+export type TargetMilestoneStatus =
+  | 'active'
+  | 'completed'
+  | 'locked'
+  | 'reward-granted'
+
+export type TargetMilestoneView = {
+  target: MoneyTarget
+  status: TargetMilestoneStatus
+  progress: number
+}
+
 export function reconcileTargetProgress(
   current: AppState,
   dailyLogs = current.dailyLogs,
@@ -87,10 +99,80 @@ export function getLockedTargetIds(spentTargetIds: string[]) {
   return new Set(spentTargetIds)
 }
 
+export function getTargetMilestones(
+  targets: MoneyTarget[],
+  earnedTotal: number,
+  lockedTargetIds: Set<string>,
+): TargetMilestoneView[] {
+  return targets.map((target, index) => {
+    const status = getTargetStatus(
+      target,
+      index,
+      targets,
+      earnedTotal,
+      lockedTargetIds,
+    )
+
+    return {
+      target,
+      status,
+      progress: getTargetProgress(index, targets, earnedTotal, status),
+    }
+  })
+}
+
+export function getNextSpendableTargetId(current: AppState) {
+  const spentTargetIds = new Set(current.spentTargetIds)
+
+  return [...current.targets]
+    .filter(
+      (target) =>
+        current.unlockedTargetIds.includes(target.id) &&
+        !spentTargetIds.has(target.id),
+    )
+    .sort((a, b) => a.amount - b.amount)[0]?.id
+}
+
 function getExistingSpentTargetIds(current: AppState, targets: MoneyTarget[]) {
   const targetIds = new Set(targets.map((target) => target.id))
 
   return current.spentTargetIds.filter((id) => targetIds.has(id))
+}
+
+function getTargetStatus(
+  target: MoneyTarget,
+  index: number,
+  targets: MoneyTarget[],
+  earnedTotal: number,
+  lockedTargetIds: Set<string>,
+): TargetMilestoneStatus {
+  if (lockedTargetIds.has(target.id)) return 'reward-granted'
+  if (earnedTotal >= target.amount) return 'completed'
+
+  const previousTarget = targets[index - 1]
+
+  if (!previousTarget || earnedTotal >= previousTarget.amount) return 'active'
+
+  return 'locked'
+}
+
+function getTargetProgress(
+  index: number,
+  targets: MoneyTarget[],
+  earnedTotal: number,
+  status: TargetMilestoneStatus,
+) {
+  if (status === 'completed' || status === 'reward-granted') return 100
+  if (status === 'locked') return 0
+
+  const previousAmount = targets[index - 1]?.amount ?? 0
+  const targetAmount = targets[index].amount
+  const targetRange = Math.max(1, targetAmount - previousAmount)
+
+  return Math.min(
+    100,
+    Math.max(0, ((earnedTotal - previousAmount) / targetRange) * 100),
+  )
 }
 
 function compareLogsByEarnedOrder(first: DailyLog, second: DailyLog) {

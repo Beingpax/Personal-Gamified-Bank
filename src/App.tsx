@@ -107,25 +107,30 @@ function App() {
             {activeScreen === 'targets' && (
               <ScreenFrame key="targets">
                 <TargetsScreen
-                  addTarget={bank.addTarget}
-                  completedTargets={completedTargets.length}
-                  dailyAmount={bank.dailyAmount}
-                  earnedTotal={earnedTotal}
-                  nextProgress={nextProgress}
-                  nextTarget={nextTarget}
-                  removeDailyLog={bank.removeDailyLog}
-                  removeTarget={bank.removeTarget}
-                  saveDailyLog={bank.saveDailyLog}
-                  selectedDate={bank.selectedDate}
-                  selectedLogIsLocked={bank.selectedLogIsLocked}
-                  setDailyAmount={bank.setDailyAmount}
-                  setSelectedDate={bank.updateSelectedDate}
-                  setTargetAmount={bank.setTargetAmount}
-                  state={bank.state}
-                  targetAmount={bank.targetAmount}
-                  targets={sortedTargets}
-                  lockedLogIds={bank.lockedLogIds}
-                  lockedTargetIds={bank.lockedTargetIds}
+                  dailyLogEntries={bank.dailyLogEntries}
+                  dailyLogForm={{
+                    amount: bank.dailyAmount,
+                    selectedDate: bank.selectedDate,
+                    selectedLogIsLocked: bank.selectedLogIsLocked,
+                    onAmountChange: bank.setDailyAmount,
+                    onDateChange: bank.updateSelectedDate,
+                    onSave: bank.saveDailyLog,
+                  }}
+                  moneySummary={{
+                    completedTargetCount: completedTargets.length,
+                    earnedTotal,
+                    nextProgress,
+                    nextTarget,
+                    targetCount: sortedTargets.length,
+                  }}
+                  onRemoveDailyLog={bank.removeDailyLog}
+                  onRemoveTarget={bank.removeTarget}
+                  targetForm={{
+                    amount: bank.targetAmount,
+                    onAmountChange: bank.setTargetAmount,
+                    onAdd: bank.addTarget,
+                  }}
+                  targets={bank.targetMilestones}
                 />
               </ScreenFrame>
             )}

@@ -1,6 +1,6 @@
 import Dexie, { type Table } from 'dexie'
 import { STORAGE_KEY } from './constants'
-import { loadState } from './storage'
+import { createInitialState, loadState } from './storage'
 import type {
   AppState,
   DailyLog,
@@ -78,12 +78,23 @@ class PersonalBankDb extends Dexie {
 
 export const db = new PersonalBankDb()
 
+let initializationPromise: Promise<void> | null = null
+
 export async function initializeLocalData() {
+  initializationPromise ??= initializeLocalDataOnce().catch((error: unknown) => {
+    initializationPromise = null
+    throw error
+  })
+
+  return initializationPromise
+}
+
+async function initializeLocalDataOnce() {
   const initialized = await db.meta.get('initialized')
   if (initialized) return
 
   const hasLegacyState = Boolean(window.localStorage.getItem(STORAGE_KEY))
-  const initialState = hasLegacyState ? loadState() : createDefaultLocalState()
+  const initialState = hasLegacyState ? loadState() : createInitialState()
 
   await importAppState(initialState, { queueUpload: hasLegacyState })
   await db.meta.put({ key: 'initialized', value: nowIso() })
@@ -318,54 +329,4 @@ function toLocalSpinClaim(claim: RewardHistoryItem): LocalSpinClaim {
 
 function isVisible(record: { deletedAt: string | null }) {
   return !record.deletedAt
-}
-
-function createDefaultLocalState(): AppState {
-  const createdAt = nowIso()
-
-  return {
-    spins: 0,
-    spentSpinCount: 0,
-    spentTargetIds: [],
-    unlockedTargetIds: [],
-    targets: [
-      { id: crypto.randomUUID(), amount: 1000, createdAt, updatedAt: createdAt },
-      { id: crypto.randomUUID(), amount: 2000, createdAt, updatedAt: createdAt },
-      { id: crypto.randomUUID(), amount: 3000, createdAt, updatedAt: createdAt },
-    ],
-    dailyLogs: [],
-    rewards: [
-      {
-        id: crypto.randomUUID(),
-        label: 'Buy one saved item',
-        createdAt,
-        updatedAt: createdAt,
-      },
-      {
-        id: crypto.randomUUID(),
-        label: 'Coffee outside',
-        createdAt,
-        updatedAt: createdAt,
-      },
-      {
-        id: crypto.randomUUID(),
-        label: 'Movie night',
-        createdAt,
-        updatedAt: createdAt,
-      },
-      {
-        id: crypto.randomUUID(),
-        label: 'Add to purchase fund',
-        createdAt,
-        updatedAt: createdAt,
-      },
-      {
-        id: crypto.randomUUID(),
-        label: 'Guilt-free tech accessory',
-        createdAt,
-        updatedAt: createdAt,
-      },
-    ],
-    history: [],
-  }
 }

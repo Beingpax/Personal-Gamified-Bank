@@ -14,6 +14,7 @@ export function ScreenButton({
 }) {
   return (
     <button
+      aria-label={label}
       className={cn('screen-button', active && 'screen-button-active')}
       onClick={onClick}
       type="button"

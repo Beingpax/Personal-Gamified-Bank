@@ -21,7 +21,9 @@ import { supabase, supabaseIsConfigured } from './supabaseClient'
 import {
   getLockedLogIds,
   getLockedTargetIds,
+  getNextSpendableTargetId,
   getTargetProgressSummary,
+  getTargetMilestones,
   reconcileTargetProgress,
 } from './targetProgress'
 import type {
@@ -160,6 +162,25 @@ export function usePersonalBankState() {
   const lockedTargetIds = useMemo(
     () => getLockedTargetIds(state.spentTargetIds),
     [state.spentTargetIds],
+  )
+  const targetMilestones = useMemo(
+    () =>
+      getTargetMilestones(
+        targetProgress.sortedTargets,
+        targetProgress.earnedTotal,
+        lockedTargetIds,
+      ),
+    [lockedTargetIds, targetProgress.earnedTotal, targetProgress.sortedTargets],
+  )
+  const dailyLogEntries = useMemo(
+    () =>
+      [...state.dailyLogs]
+        .sort((first, second) => second.date.localeCompare(first.date))
+        .map((log) => ({
+          log,
+          locked: lockedLogIds.has(log.id),
+        })),
+    [lockedLogIds, state.dailyLogs],
   )
   const selectedLog = state.dailyLogs.find((log) => log.date === selectedDate)
   const selectedLogIsLocked = selectedLog
@@ -363,6 +384,7 @@ export function usePersonalBankState() {
     authEmail,
     authMessage,
     dailyAmount,
+    dailyLogEntries,
     isSupabaseConfigured: supabaseIsConfigured,
     lockedLogIds,
     lockedTargetIds,
@@ -388,19 +410,8 @@ export function usePersonalBankState() {
     syncNow,
     syncStatus,
     targetAmount,
+    targetMilestones,
     targetProgress,
     updateSelectedDate,
   }
-}
-
-function getNextSpendableTargetId(current: AppState) {
-  const spentTargetIds = new Set(current.spentTargetIds)
-
-  return [...current.targets]
-    .filter(
-      (target) =>
-        current.unlockedTargetIds.includes(target.id) &&
-        !spentTargetIds.has(target.id),
-    )
-    .sort((a, b) => a.amount - b.amount)[0]?.id
 }

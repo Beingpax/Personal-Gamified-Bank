@@ -1,13 +1,8 @@
 import { Lock, Trash2 } from 'lucide-react'
 import { formatCurrency } from '../../app/format'
+import type { TargetMilestoneStatus } from '../../app/targetProgress'
 import type { MoneyTarget } from '../../app/types'
 import { cn } from '../../lib/utils'
-
-export type TargetMilestoneStatus =
-  | 'active'
-  | 'completed'
-  | 'locked'
-  | 'reward-granted'
 
 export function TargetMilestone({
   onRemove,
