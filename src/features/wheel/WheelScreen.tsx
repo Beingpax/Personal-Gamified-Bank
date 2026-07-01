@@ -42,11 +42,20 @@ type ConfettiParticle = {
   dead: boolean
 }
 
-const CONFETTI_COLORS = ['#f97316', '#a855f7', '#06b6d4', '#eab308', '#ec4899', '#22c55e', '#f43f5e', '#3b82f6']
+const CONFETTI_COLORS = [
+  '#f97316',
+  '#a855f7',
+  '#06b6d4',
+  '#eab308',
+  '#ec4899',
+  '#22c55e',
+  '#f43f5e',
+  '#3b82f6',
+]
 
-// A dense but short canvas burst. The time-based step keeps the celebration
-// moving briskly even when drawing many pieces.
-const CONFETTI_COUNT = 5000
+const CONFETTI_BASELINE_AREA = 1_000_000
+const CONFETTI_MIN_COUNT = 700
+const CONFETTI_MAX_COUNT = 3600
 const CONFETTI_FRAME_MS = 1000 / 60
 const CONFETTI_MAX_FRAME_STEP = 2.4
 
@@ -58,9 +67,14 @@ const SPIN_DECAY_PER_MS = 0.999
 const REST_VELOCITY = 0.002
 const MAX_SPIN_DURATION_MS = 7600
 
-function createConfettiBurst(originX: number, originY: number): ConfettiParticle[] {
+function createConfettiBurst(
+  originX: number,
+  originY: number,
+  count: number,
+): ConfettiParticle[] {
   const particles: ConfettiParticle[] = []
-  for (let i = 0; i < CONFETTI_COUNT; i += 1) {
+
+  for (let i = 0; i < count; i += 1) {
     // Launch in an upward fan: straight up (-90°) with a wide spread sideways.
     const angle = -Math.PI / 2 + (Math.random() - 0.5) * (Math.PI * 1.05)
     const speed = 12 + Math.random() * 30
@@ -86,6 +100,29 @@ function createConfettiBurst(originX: number, originY: number): ConfettiParticle
     })
   }
   return particles
+}
+
+function getConfettiProfile(width: number, height: number) {
+  const deviceMemory = (navigator as Navigator & { deviceMemory?: number })
+    .deviceMemory
+  const cores = navigator.hardwareConcurrency || 4
+  const devicePixelRatio = window.devicePixelRatio || 1
+  const areaScale = Math.sqrt((width * height) / CONFETTI_BASELINE_AREA)
+  const isCompactViewport = width < 720 || height < 620
+  const isLikelyLowPower =
+    cores <= 4 || (deviceMemory != null && deviceMemory <= 4)
+  const performanceScale = isLikelyLowPower ? 0.58 : 1
+  const viewportScale = isCompactViewport ? 0.62 : 1
+  const dpr = Math.min(devicePixelRatio, isLikelyLowPower ? 1.35 : 2)
+  const count = Math.round(
+    clamp(
+      2200 * areaScale * performanceScale * viewportScale,
+      CONFETTI_MIN_COUNT,
+      CONFETTI_MAX_COUNT,
+    ),
+  )
+
+  return { count, dpr }
 }
 
 export function WheelScreen({
@@ -148,9 +185,11 @@ export function WheelScreen({
 
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
 
-    const dpr = Math.min(window.devicePixelRatio || 1, 2)
     const width = window.innerWidth
     const height = window.innerHeight
+    const confettiProfile = getConfettiProfile(width, height)
+    const dpr = confettiProfile.dpr
+
     canvas.width = width * dpr
     canvas.height = height * dpr
     canvas.style.width = `${width}px`
@@ -160,7 +199,11 @@ export function WheelScreen({
     canvas.style.top = `${-canvasRect.top}px`
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
 
-    const particles = createConfettiBurst(originX, originY)
+    const particles = createConfettiBurst(
+      originX,
+      originY,
+      confettiProfile.count,
+    )
     if (confettiRafRef.current) cancelAnimationFrame(confettiRafRef.current)
     let lastFrameTime = performance.now()
 
@@ -471,4 +514,8 @@ function getReleaseVelocity(drag: DragState, releaseTime: number) {
 
 function shortestAngleDelta(next: number, previous: number) {
   return ((next - previous + 540) % 360) - 180
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value))
 }

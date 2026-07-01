@@ -21,6 +21,7 @@ type MoneySummary = {
   earnedTotal: number
   nextProgress: number
   nextTarget?: MoneyTarget
+  spins: number
   targetCount: number
 }
 
@@ -79,8 +80,7 @@ export function TargetsScreen({
           <div style={{ width: `${moneySummary.nextProgress}%` }} />
         </div>
         <p>
-          {moneySummary.completedTargetCount} of {moneySummary.targetCount}{' '}
-          targets complete. Each target unlocks one spin once.
+          {getProgressNudge(moneySummary)}
         </p>
       </section>
 
@@ -230,4 +230,29 @@ export function TargetsScreen({
       </section>
     </div>
   )
+}
+
+function getProgressNudge({
+  completedTargetCount,
+  earnedTotal,
+  nextTarget,
+  spins,
+  targetCount,
+}: MoneySummary) {
+  if (spins > 0) {
+    return `${spins} ${spins === 1 ? 'spin is' : 'spins are'} ready. Flick the wheel when you want your reward.`
+  }
+
+  if (nextTarget) {
+    const remaining = Math.max(0, nextTarget.amount - earnedTotal)
+    const spinLabel = completedTargetCount === 0 ? 'first spin' : 'next spin'
+
+    return `${formatCurrency(remaining)} more unlocks your ${spinLabel}.`
+  }
+
+  if (targetCount === 0) {
+    return 'Add a target to start earning spins.'
+  }
+
+  return 'All targets cleared. Add another target when you want a new run.'
 }

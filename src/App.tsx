@@ -133,6 +133,7 @@ function App() {
                     earnedTotal,
                     nextProgress,
                     nextTarget,
+                    spins: bank.state.spins,
                     targetCount: sortedTargets.length,
                   }}
                   onRemoveDailyLog={bank.removeDailyLog}
