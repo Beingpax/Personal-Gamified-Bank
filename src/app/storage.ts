@@ -148,11 +148,14 @@ function decodeHistoryItem(value: unknown): RewardHistoryItem | null {
   const rewardLabel = readString(value.rewardLabel).trim()
   if (!rewardLabel) return null
 
+  const rewardColor = readString(value.rewardColor).trim()
+
   return {
     id: readId(value.id),
     targetId: readNullableId(value.targetId),
     rewardId: readId(value.rewardId),
     rewardLabel,
+    rewardColor: rewardColor || null,
     createdAt: readDateTime(value.createdAt) ?? new Date().toISOString(),
     ...readSyncFields(value),
   }

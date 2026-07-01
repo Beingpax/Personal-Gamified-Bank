@@ -122,10 +122,8 @@ function App() {
                   dailyLogEntries={bank.dailyLogEntries}
                   dailyLogForm={{
                     amount: bank.dailyAmount,
-                    selectedDate: bank.selectedDate,
                     selectedLogIsLocked: bank.selectedLogIsLocked,
                     onAmountChange: bank.setDailyAmount,
-                    onDateChange: bank.updateSelectedDate,
                     onSave: bank.saveDailyLog,
                   }}
                   moneySummary={{

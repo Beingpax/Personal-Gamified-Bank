@@ -7,6 +7,7 @@ import {
   Target,
   Trash2,
 } from 'lucide-react'
+import { useState } from 'react'
 import { formatCurrency, formatDay } from '../../app/format'
 import type { TargetMilestoneView } from '../../app/targetProgress'
 import type { DailyLog, MoneyTarget } from '../../app/types'
@@ -27,10 +28,8 @@ type MoneySummary = {
 
 type DailyLogForm = {
   amount: number
-  selectedDate: string
   selectedLogIsLocked: boolean
   onAmountChange: (value: number) => void
-  onDateChange: (value: string) => void
   onSave: () => void
 }
 
@@ -62,12 +61,20 @@ export function TargetsScreen({
   targetForm: TargetForm
   targets: TargetMilestoneView[]
 }) {
+  const [confirmingDailyLogId, setConfirmingDailyLogId] = useState<
+    string | null
+  >(null)
   const visibleTargets = targets
     .filter(
       ({ status }) => status !== 'completed' && status !== 'reward-granted',
     )
     .slice(0, 4)
   const visibleDailyLogEntries = dailyLogEntries.slice(0, 7)
+
+  function confirmRemoveDailyLog(id: string) {
+    onRemoveDailyLog(id)
+    setConfirmingDailyLogId(null)
+  }
 
   return (
     <div className="targets-grid">
@@ -94,10 +101,8 @@ export function TargetsScreen({
       <section className="daily-panel">
         <div className="daily-panel-copy">
           <p className="panel-kicker">Daily logging</p>
-          <h2>{formatDay(dailyLogForm.selectedDate)}</h2>
           <p>
-            Save your daily logs when you are ready. Missing earlier days stay
-            empty.
+            Log today's progress when you are ready. Earlier days stay empty.
           </p>
         </div>
         <form
@@ -108,21 +113,9 @@ export function TargetsScreen({
           }}
         >
           <label className="field-label">
-            Date
+            Dollars on today
             <Input
-              aria-label="Daily log date"
-              disabled
-              max={dailyLogForm.selectedDate}
-              min={dailyLogForm.selectedDate}
-              type="date"
-              value={dailyLogForm.selectedDate}
-              onChange={(event) => dailyLogForm.onDateChange(event.target.value)}
-            />
-          </label>
-          <label className="field-label">
-            Dollars earned today
-            <Input
-              aria-label="Dollars earned today"
+              aria-label="Dollars on today"
               disabled={dailyLogForm.selectedLogIsLocked}
               min={0}
               type="number"
@@ -138,7 +131,7 @@ export function TargetsScreen({
             type="submit"
           >
             <Save aria-hidden="true" size={16} />
-            {dailyLogForm.selectedLogIsLocked ? 'Reward granted' : 'Save day'}
+            Save
           </Button>
         </form>
       </section>
@@ -193,15 +186,18 @@ export function TargetsScreen({
             targetForm.onAdd()
           }}
         >
-          <Input
-            aria-label="New target amount"
-            min={1}
-            type="number"
-            value={targetForm.amount}
-            onChange={(event) =>
-              targetForm.onAmountChange(Number(event.target.value))
-            }
-          />
+          <label className="target-amount-control">
+            <span aria-hidden="true">$</span>
+            <Input
+              aria-label="New target amount"
+              min={1}
+              type="number"
+              value={targetForm.amount}
+              onChange={(event) =>
+                targetForm.onAmountChange(Number(event.target.value))
+              }
+            />
+          </label>
           <Button type="submit" variant="secondary">
             <Plus aria-hidden="true" size={16} />
             Add target
@@ -247,22 +243,41 @@ export function TargetsScreen({
                 <strong className="ledger-value">
                   {formatCurrency(log.amount)}
                 </strong>
-                <button
-                  aria-label={
-                    locked
-                      ? `${log.date} is locked because a reward was granted`
-                      : `Remove ${log.date}`
-                  }
-                  disabled={locked}
-                  onClick={() => onRemoveDailyLog(log.id)}
-                  type="button"
-                >
-                  {locked ? (
+                {confirmingDailyLogId === log.id ? (
+                  <div className="row-confirm daily-confirm">
+                    <span>Remove?</span>
+                    <button
+                      onClick={() => confirmRemoveDailyLog(log.id)}
+                      type="button"
+                    >
+                      Yes
+                    </button>
+                    <button
+                      onClick={() => setConfirmingDailyLogId(null)}
+                      type="button"
+                    >
+                      No
+                    </button>
+                  </div>
+                ) : locked ? (
+                  <span
+                    aria-label={`${log.date} is locked because a reward was granted`}
+                    className="row-action row-action-locked"
+                    role="img"
+                    title="Locked"
+                  >
                     <Lock aria-hidden="true" size={15} />
-                  ) : (
+                  </span>
+                ) : (
+                  <button
+                    aria-label={`Remove ${log.date}`}
+                    className="row-action row-action-danger"
+                    onClick={() => setConfirmingDailyLogId(log.id)}
+                    type="button"
+                  >
                     <Trash2 aria-hidden="true" size={15} />
-                  )}
-                </button>
+                  </button>
+                )}
               </div>
             )
           })}

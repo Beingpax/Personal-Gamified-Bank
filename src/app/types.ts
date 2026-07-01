@@ -30,6 +30,7 @@ export type RewardHistoryItem = {
   targetId?: string | null
   rewardId: string
   rewardLabel: string
+  rewardColor?: string | null
   createdAt: string
   updatedAt?: string
   deletedAt?: string | null

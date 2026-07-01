@@ -174,7 +174,10 @@ async function mergeSpinClaims(records: RemoteSpinClaim[]) {
     const remote = fromRemoteSpinClaim(record)
 
     if (!local || remote.updatedAt >= local.updatedAt) {
-      await db.spinClaims.put(remote)
+      await db.spinClaims.put({
+        ...remote,
+        rewardColor: remote.rewardColor ?? local?.rewardColor ?? null,
+      })
     }
   }
 }
@@ -277,6 +280,7 @@ function fromRemoteSpinClaim(record: RemoteSpinClaim): LocalSpinClaim {
     targetId: record.target_id,
     rewardId: record.reward_id,
     rewardLabel: record.reward_label_snapshot,
+    rewardColor: null,
     createdAt: record.created_at,
     updatedAt: record.updated_at,
     deletedAt: record.deleted_at,

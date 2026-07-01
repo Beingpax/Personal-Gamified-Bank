@@ -51,6 +51,7 @@ export type LocalSpinClaim = Required<
   >
 > & {
   targetId: string | null
+  rewardColor: string | null
   deletedAt: string | null
 }
 
@@ -185,6 +186,7 @@ export async function getLocalAppState(): Promise<AppState> {
           targetId,
           rewardId,
           rewardLabel,
+          rewardColor,
           createdAt,
           updatedAt,
           deletedAt,
@@ -193,6 +195,7 @@ export async function getLocalAppState(): Promise<AppState> {
           targetId,
           rewardId,
           rewardLabel,
+          rewardColor,
           createdAt,
           updatedAt,
           deletedAt,
@@ -321,6 +324,7 @@ function toLocalSpinClaim(claim: RewardHistoryItem): LocalSpinClaim {
     targetId: claim.targetId ?? null,
     rewardId: claim.rewardId,
     rewardLabel: claim.rewardLabel,
+    rewardColor: claim.rewardColor ?? null,
     createdAt: claim.createdAt,
     updatedAt: timestamp,
     deletedAt: claim.deletedAt ?? null,

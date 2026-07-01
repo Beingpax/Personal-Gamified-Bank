@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Lock, Trash2 } from 'lucide-react'
 import { formatCurrency } from '../../app/format'
 import type { TargetMilestoneStatus } from '../../app/targetProgress'
@@ -20,6 +21,12 @@ export function TargetMilestone({
   const rewardGranted = status === 'reward-granted'
   const milestoneLocked = status === 'locked'
   const complete = status === 'completed' || rewardGranted
+  const [confirmingRemove, setConfirmingRemove] = useState(false)
+
+  function confirmRemove() {
+    onRemove()
+    setConfirmingRemove(false)
+  }
 
   return (
     <div
@@ -47,18 +54,35 @@ export function TargetMilestone({
           </span>
         </div>
       </div>
-      <button
-        aria-label={
-          rewardGranted
-            ? `${formatCurrency(target.amount)} target is locked because a reward was granted`
-            : `Remove ${formatCurrency(target.amount)} target`
-        }
-        disabled={rewardGranted}
-        onClick={onRemove}
-        type="button"
-      >
-        <Trash2 aria-hidden="true" size={15} />
-      </button>
+      {confirmingRemove ? (
+        <div className="row-confirm target-confirm">
+          <span>Remove?</span>
+          <button onClick={confirmRemove} type="button">
+            Yes
+          </button>
+          <button onClick={() => setConfirmingRemove(false)} type="button">
+            No
+          </button>
+        </div>
+      ) : rewardGranted ? (
+        <span
+          aria-label={`${formatCurrency(target.amount)} target is locked because a reward was granted`}
+          className="row-action row-action-locked"
+          role="img"
+          title="Locked"
+        >
+          <Lock aria-hidden="true" size={15} />
+        </span>
+      ) : (
+        <button
+          aria-label={`Remove ${formatCurrency(target.amount)} target`}
+          className="row-action row-action-danger"
+          onClick={() => setConfirmingRemove(true)}
+          type="button"
+        >
+          <Trash2 aria-hidden="true" size={15} />
+        </button>
+      )}
     </div>
   )
 }

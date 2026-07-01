@@ -1,5 +1,6 @@
 import type { Session } from '@supabase/supabase-js'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { segmentColors } from './constants'
 import { upsertDailyLog } from './dailyLogs'
 import { isDateKey, todayDateKey } from './format'
 import {
@@ -300,12 +301,18 @@ export function usePersonalBankState() {
 
   function recordReward(reward: RewardItem) {
     const targetId = getNextSpendableTargetId(state)
+    const rewardIndex = state.rewards.findIndex((item) => item.id === reward.id)
+    const rewardColor =
+      segmentColors[
+        (rewardIndex >= 0 ? rewardIndex : 0) % segmentColors.length
+      ]
     const timestamp = nowIso()
     const earnedReward: RewardHistoryItem = {
       id: crypto.randomUUID(),
       targetId,
       rewardId: reward.id,
       rewardLabel: reward.label,
+      rewardColor,
       createdAt: timestamp,
       updatedAt: timestamp,
       deletedAt: null,
