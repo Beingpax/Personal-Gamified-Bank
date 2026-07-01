@@ -310,17 +310,22 @@ export function usePersonalBankState() {
       updatedAt: timestamp,
       deletedAt: null,
     }
+    const nextState = {
+      ...state,
+      history: [earnedReward, ...state.history],
+      rewards: state.rewards.filter((item) => item.id !== reward.id),
+      spentTargetIds: targetId
+        ? [...state.spentTargetIds, targetId]
+        : state.spentTargetIds,
+      spentSpinCount: state.spentSpinCount + 1,
+    }
+
+    setState(reconcileTargetProgress(nextState))
 
     void (async () => {
       await putSpinClaim(earnedReward)
-      await afterLocalChange({
-        ...state,
-        history: [earnedReward, ...state.history],
-        spentTargetIds: targetId
-          ? [...state.spentTargetIds, targetId]
-          : state.spentTargetIds,
-        spentSpinCount: state.spentSpinCount + 1,
-      })
+      await softDeleteRecord('rewards', reward.id)
+      await afterLocalChange(nextState)
     })()
 
     return earnedReward

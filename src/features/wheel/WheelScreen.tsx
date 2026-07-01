@@ -44,8 +44,8 @@ type ConfettiParticle = {
 
 const CONFETTI_COLORS = ['#f97316', '#a855f7', '#06b6d4', '#eab308', '#ec4899', '#22c55e', '#f43f5e', '#3b82f6']
 
-// A short canvas burst. Keeping the count restrained makes the celebration feel
-// faster because the browser is not trying to draw thousands of pieces per frame.
+// A dense but short canvas burst. The time-based step keeps the celebration
+// moving briskly even when drawing many pieces.
 const CONFETTI_COUNT = 5000
 const CONFETTI_FRAME_MS = 1000 / 60
 const CONFETTI_MAX_FRAME_STEP = 2.4
@@ -126,8 +126,9 @@ export function WheelScreen({
   const [hint, setHint] = useState('Grab the wheel and flick it.')
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const confettiRafRef = useRef<number | null>(null)
+  const hasRewards = rewards.length > 0
   const canUseWheel =
-    spins > 0 && rewards.length > 0 && !isSpinning && latestReward == null
+    spins > 0 && hasRewards && !isSpinning && latestReward == null
 
   useEffect(() => {
     rotationRef.current = rotation
@@ -360,8 +361,10 @@ export function WheelScreen({
         <strong>{spins}</strong>
         <span>
           {latestReward
-            ? 'Reward locked on the wheel.'
-            : spins > 0
+            ? 'Reward moved to the shelf.'
+            : !hasRewards
+              ? 'Add a reward to refresh the wheel.'
+              : spins > 0
               ? hint
               : 'Hit a money target to unlock the wheel.'}
         </span>
@@ -427,7 +430,13 @@ export function WheelScreen({
               key="empty-result"
             >
               <Sparkles aria-hidden="true" size={20} />
-              <p>Flick the wheel to reveal your reward</p>
+              <p>
+                {!hasRewards
+                  ? 'Add rewards to fill the wheel'
+                  : spins > 0
+                    ? 'Flick the wheel to reveal your reward'
+                    : 'Earn a spin to use the wheel'}
+              </p>
             </motion.div>
           )}
         </AnimatePresence>

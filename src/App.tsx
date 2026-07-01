@@ -1,6 +1,11 @@
 import { AnimatePresence } from 'motion/react'
 import { useMemo, useState } from 'react'
-import type { RewardHistoryItem, RewardItem, Screen } from './app/types'
+import type {
+  RewardHistoryItem,
+  RewardItem,
+  Screen,
+  Segment,
+} from './app/types'
 import { usePersonalBankState } from './app/usePersonalBankState'
 import { ScreenFrame } from './components/layout/ScreenFrame'
 import { SideRail } from './components/layout/SideRail'
@@ -18,6 +23,7 @@ function App() {
   const [latestReward, setLatestReward] = useState<RewardHistoryItem | null>(
     null,
   )
+  const [heldSegments, setHeldSegments] = useState<Segment[] | null>(null)
 
   const {
     completedTargets,
@@ -30,19 +36,23 @@ function App() {
     () => makeSegments(bank.state.rewards),
     [bank.state.rewards],
   )
+  const wheelSegments = heldSegments ?? segments
 
   function startSpin() {
     if (
       bank.state.spins <= 0 ||
       isSpinning ||
       latestReward ||
-      segments.length === 0
+      wheelSegments.length === 0
     ) {
       return false
     }
 
     const spentSpin = bank.spendAvailableSpin()
-    if (spentSpin) setIsSpinning(true)
+    if (spentSpin) {
+      setHeldSegments(wheelSegments)
+      setIsSpinning(true)
+    }
 
     return spentSpin
   }
@@ -58,14 +68,16 @@ function App() {
   function acknowledgeReward() {
     if (!latestReward) return
 
-    // Celebrate and clear the reward, staying on the wheel so the user can
-    // spin again while spins remain. The win is already recorded in history.
+    // Clear the result and let the wheel render the remaining active rewards.
+    // The win has already been recorded in history.
     setLatestReward(null)
+    setHeldSegments(null)
   }
 
   function resetApp() {
     bank.resetBank()
     setLatestReward(null)
+    setHeldSegments(null)
     setRotation(0)
     setActiveScreen('targets')
   }
@@ -143,7 +155,7 @@ function App() {
                   latestReward={latestReward}
                   rewards={bank.state.rewards}
                   rotation={rotation}
-                  segments={segments}
+                  segments={wheelSegments}
                   setRotation={setRotation}
                   startSpin={startSpin}
                   spins={bank.state.spins}

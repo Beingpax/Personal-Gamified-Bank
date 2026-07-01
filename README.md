@@ -35,11 +35,11 @@ When a spin has already been spent for a milestone, the app locks the target and
 
 The wheel screen shows your available spins and current rewards. To spin, grab the wheel and flick it. A spin is only spent if the flick is fast enough. When the wheel stops, the reward under the pointer is recorded as earned.
 
-After a reward is earned, acknowledge the result with **Yay!**. The win is recorded in reward history; the reward stays on the wheel until you remove it from the rewards screen.
+After a reward is earned, acknowledge the result with **Yay!**. The win is recorded in reward history, removed from the active wheel, and shown on the reward shelf.
 
 ### Rewards
 
-The rewards screen lets you manage the wheel contents and see previous results. Each reward gets one equal wheel slice. You can add or remove rewards at any time, and claimed rewards appear in the history list with the date and time they were earned.
+The rewards screen lets you manage the wheel contents and see previous results. Each active reward gets one equal wheel slice. You can add or remove rewards at any time, and claimed rewards leave the active wheel and appear in the history list with the date and time they were earned.
 
 ## Data And Sync
 
