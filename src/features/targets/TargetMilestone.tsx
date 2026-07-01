@@ -5,11 +5,13 @@ import type { MoneyTarget } from '../../app/types'
 import { cn } from '../../lib/utils'
 
 export function TargetMilestone({
+  index,
   onRemove,
   progress,
   status,
   target,
 }: {
+  index: number
   onRemove: () => void
   progress: number
   status: TargetMilestoneStatus
@@ -18,7 +20,6 @@ export function TargetMilestone({
   const rewardGranted = status === 'reward-granted'
   const milestoneLocked = status === 'locked'
   const complete = status === 'completed' || rewardGranted
-  const label = getStatusLabel(status)
 
   return (
     <div
@@ -28,20 +29,24 @@ export function TargetMilestone({
         (rewardGranted || milestoneLocked) && 'target-locked',
       )}
     >
-      <div className="target-copy">
-        <span>{label}</span>
-        <strong>{formatCurrency(target.amount)}</strong>
+      <span className="target-rung">{index + 1}</span>
+      <div className="target-main">
+        <div className="target-topline">
+          <strong>{formatCurrency(target.amount)}</strong>
+        </div>
+        <div className="target-progress-line">
+          <div className="target-meter" aria-hidden="true">
+            <div style={{ width: `${progress}%` }} />
+          </div>
+          <span className="target-percent">
+            {rewardGranted || milestoneLocked ? (
+              <Lock aria-hidden="true" size={13} />
+            ) : (
+              `${Math.round(progress)}%`
+            )}
+          </span>
+        </div>
       </div>
-      <div className="target-meter" aria-hidden="true">
-        <div style={{ width: `${progress}%` }} />
-      </div>
-      <span className="target-percent">
-        {rewardGranted || milestoneLocked ? (
-          <Lock aria-hidden="true" size={13} />
-        ) : (
-          `${Math.round(progress)}%`
-        )}
-      </span>
       <button
         aria-label={
           rewardGranted
@@ -56,17 +61,4 @@ export function TargetMilestone({
       </button>
     </div>
   )
-}
-
-function getStatusLabel(status: TargetMilestoneStatus) {
-  switch (status) {
-    case 'active':
-      return 'Current target'
-    case 'completed':
-      return 'Completed'
-    case 'locked':
-      return 'Locked'
-    case 'reward-granted':
-      return 'Reward granted'
-  }
 }

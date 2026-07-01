@@ -62,6 +62,13 @@ export function TargetsScreen({
   targetForm: TargetForm
   targets: TargetMilestoneView[]
 }) {
+  const visibleTargets = targets
+    .filter(
+      ({ status }) => status !== 'completed' && status !== 'reward-granted',
+    )
+    .slice(0, 4)
+  const visibleDailyLogEntries = dailyLogEntries.slice(0, 7)
+
   return (
     <div className="targets-grid">
       <section className="money-panel">
@@ -137,23 +144,47 @@ export function TargetsScreen({
       </section>
 
       <section className="target-panel-clean">
-        <div className="section-heading">
-          <Target aria-hidden="true" size={20} />
-          <div>
-            <h2>Money targets</h2>
-            <p>The milestones that unlock spins.</p>
+        <div className="panel-heading">
+          <div className="panel-title">
+            <span className="panel-icon panel-icon-target">
+              <Target aria-hidden="true" size={18} />
+            </span>
+            <div>
+              <h2>Money targets</h2>
+              <p>The milestones that unlock spins.</p>
+            </div>
           </div>
         </div>
-        <div className="target-list">
-          {targets.map(({ target, status, progress }) => (
-            <TargetMilestone
-              key={target.id}
-              onRemove={() => onRemoveTarget(target.id)}
-              progress={progress}
-              status={status}
-              target={target}
+        <div
+          className={cn(
+            'target-list',
+            visibleTargets.length === 0 && 'target-list-empty',
+          )}
+        >
+          {visibleTargets.length > 0 ? (
+            visibleTargets.map(({ target, status, progress }, index) => (
+              <TargetMilestone
+                key={target.id}
+                index={index}
+                onRemove={() => onRemoveTarget(target.id)}
+                progress={progress}
+                status={status}
+                target={target}
+              />
+            ))
+          ) : (
+            <EmptyMessage
+              icon={<Target aria-hidden="true" size={18} />}
+              title={
+                targets.length === 0 ? 'No targets yet' : 'All targets cleared'
+              }
+              copy={
+                targets.length === 0
+                  ? 'Add a target amount to create your first spin milestone.'
+                  : 'Add another target when you want a new run.'
+              }
             />
-          ))}
+          )}
         </div>
         <form
           className="target-add-form"
@@ -179,47 +210,63 @@ export function TargetsScreen({
       </section>
 
       <section className="daily-ledger-panel">
-        <div className="section-heading">
-          <History aria-hidden="true" size={20} />
-          <div>
-            <h2>Daily log</h2>
-            <p>Only days you choose to save appear here.</p>
+        <div className="panel-heading">
+          <div className="panel-title">
+            <span className="panel-icon panel-icon-log">
+              <History aria-hidden="true" size={18} />
+            </span>
+            <div>
+              <h2>Daily log</h2>
+              <p>Only days you choose to save appear here.</p>
+            </div>
           </div>
         </div>
         <div className="daily-ledger-list">
-          {dailyLogEntries.map(({ log, locked }) => {
+          {visibleDailyLogEntries.length > 0 && (
+            <div className="daily-ledger-head" aria-hidden="true">
+              <span>Day</span>
+              <span>Amount</span>
+              <span />
+            </div>
+          )}
+          {visibleDailyLogEntries.map(({ log, locked }) => {
             return (
               <div
                 className={cn('daily-ledger-row', locked && 'ledger-locked')}
                 key={log.id}
               >
                 <div className="daily-date">
-                  <CalendarDays aria-hidden="true" size={17} />
+                  <span className="daily-date-icon">
+                    <CalendarDays aria-hidden="true" size={16} />
+                  </span>
                   <div>
                     <strong>{formatDay(log.date)}</strong>
-                    <span>{locked ? 'Reward granted' : log.date}</span>
+                    <span>{log.date}</span>
                   </div>
                 </div>
-                <div className="ledger-amount">
-                  <strong>{formatCurrency(log.amount)}</strong>
-                  {locked && <Lock aria-hidden="true" size={15} />}
-                  <button
-                    aria-label={
-                      locked
-                        ? `${log.date} is locked because a reward was granted`
-                        : `Remove ${log.date}`
-                    }
-                    disabled={locked}
-                    onClick={() => onRemoveDailyLog(log.id)}
-                    type="button"
-                  >
+                <strong className="ledger-value">
+                  {formatCurrency(log.amount)}
+                </strong>
+                <button
+                  aria-label={
+                    locked
+                      ? `${log.date} is locked because a reward was granted`
+                      : `Remove ${log.date}`
+                  }
+                  disabled={locked}
+                  onClick={() => onRemoveDailyLog(log.id)}
+                  type="button"
+                >
+                  {locked ? (
+                    <Lock aria-hidden="true" size={15} />
+                  ) : (
                     <Trash2 aria-hidden="true" size={15} />
-                  </button>
-                </div>
+                  )}
+                </button>
               </div>
             )
           })}
-          {dailyLogEntries.length === 0 && (
+          {visibleDailyLogEntries.length === 0 && (
             <EmptyMessage
               icon={<CalendarDays aria-hidden="true" size={18} />}
               title="No days logged"

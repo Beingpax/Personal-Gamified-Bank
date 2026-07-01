@@ -564,71 +564,120 @@ button:disabled {
 .daily-ledger-panel,
 .reward-editor,
 .history-panel {
-  border-radius: var(--radius);
+  border-radius: var(--radius-md);
   border: 1.5px solid var(--line);
   background: var(--surface);
-  padding: 22px;
-  box-shadow: var(--sh-soft);
+  padding: 20px;
+  box-shadow: 0 2px 0 oklch(0.2 0.03 274 / 0.08);
 }
 
 .target-panel-clean,
 .daily-ledger-panel {
-  min-height: 320px;
+  min-height: 310px;
 }
 
-.section-heading {
+.panel-heading {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 18px;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 16px;
+  border-bottom: 1.5px solid var(--line);
+  padding-bottom: 14px;
 }
 
-.section-heading > svg {
+.panel-title {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+}
+
+.panel-icon {
   flex: 0 0 auto;
-  display: block;
-  width: 40px;
-  height: 40px;
-  padding: 9px;
-  border-radius: 12px;
-  border: 1.5px solid var(--ink);
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  padding: 8px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border-strong);
   background: var(--primary-soft);
   color: var(--primary-active);
 }
 
-.section-heading h2 {
+.panel-icon-log {
+  background: var(--surface-warm);
+  color: var(--primary);
+}
+
+.panel-icon-reward {
+  background: var(--grape-soft);
+  color: var(--grape);
+}
+
+.panel-icon-shelf {
+  background: var(--gold-soft);
+  color: var(--gold-deep);
+}
+
+.panel-title h2 {
   margin: 0;
   font-family: var(--font-display);
-  font-size: 1.1875rem;
+  font-size: 1.12rem;
   font-weight: 700;
   letter-spacing: -0.01em;
 }
 
-.section-heading p {
+.panel-title p {
   margin: 2px 0 0;
   color: var(--muted);
-  font-size: 0.8125rem;
+  font-size: 0.8rem;
 }
 
 .reward-list,
 .history-list,
 .target-list {
   display: grid;
-  gap: 10px;
+  gap: 9px;
+}
+
+.target-list {
+  position: relative;
+  padding-left: 6px;
+}
+
+.target-list::before {
+  content: '';
+  position: absolute;
+  top: 18px;
+  bottom: 18px;
+  left: 23px;
+  width: 1.5px;
+  border-radius: var(--pill);
+  background: var(--border);
+}
+
+.target-list-empty {
+  padding-left: 0;
+}
+
+.target-list-empty::before {
+  display: none;
 }
 
 /* Target milestone rows */
 .target-milestone {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(128px, 0.42fr) minmax(120px, 1fr) 54px 44px;
-  min-height: 84px;
-  align-items: center;
-  gap: 14px;
-  overflow: hidden;
-  border-radius: var(--radius-md);
+  grid-template-columns: 36px minmax(0, 1fr) 36px;
+  min-height: 66px;
+  align-items: stretch;
+  gap: 12px;
+  border-radius: 12px;
   border: 1.5px solid var(--border);
   background: var(--surface);
-  padding: 12px 14px 12px 22px;
+  padding: 10px;
   transition:
     border-color 160ms cubic-bezier(0.22, 1, 0.36, 1),
     transform 140ms cubic-bezier(0.22, 1, 0.36, 1),
@@ -636,11 +685,7 @@ button:disabled {
 }
 
 .target-milestone::before {
-  content: '';
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 9px;
-  background: var(--primary);
+  display: none;
 }
 
 .target-milestone:hover {
@@ -651,44 +696,85 @@ button:disabled {
 
 .target-complete {
   border-color: var(--mint);
-  background: linear-gradient(90deg, var(--mint-soft), var(--surface));
+  background: linear-gradient(90deg, var(--mint-soft), var(--surface) 52%);
 }
 
 .target-complete::before {
-  background: var(--mint);
+  display: none;
 }
 
 .target-locked,
 .ledger-locked {
-  border-color: var(--border-strong);
+  border-color: var(--line);
   background: var(--surface-strong);
 }
 
 .target-locked::before {
-  background: var(--border-strong);
+  display: none;
 }
 
-.target-copy span {
-  display: block;
-  margin-bottom: 3px;
-  color: var(--muted);
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.target-copy strong {
+.target-rung {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  align-self: center;
+  border-radius: 50%;
+  border: 1.5px solid var(--ink);
+  background: var(--surface);
   color: var(--ink);
   font-family: var(--font-display);
-  font-size: 1.1875rem;
+  font-size: 0.9rem;
+  font-weight: 800;
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.target-complete .target-rung {
+  border-color: oklch(0.48 0.13 160);
+  background: var(--mint-soft);
+  color: oklch(0.34 0.13 160);
+}
+
+.target-locked .target-rung {
+  border-color: var(--border-strong);
+  background: var(--surface-strong);
+  color: var(--muted);
+  box-shadow: none;
+}
+
+.target-main {
+  display: grid;
+  min-width: 0;
+  align-content: center;
+  gap: 8px;
+}
+
+.target-topline {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+}
+
+.target-topline strong {
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 1.12rem;
   font-variant-numeric: tabular-nums;
   font-weight: 800;
   letter-spacing: -0.02em;
 }
 
+.target-progress-line {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 46px;
+  align-items: center;
+  gap: 10px;
+}
+
 .target-meter {
-  height: 12px;
+  height: 8px;
   overflow: hidden;
   border-radius: var(--pill);
   border: 1.5px solid var(--border);
@@ -709,7 +795,7 @@ button:disabled {
 .target-percent {
   display: grid;
   min-width: 46px;
-  height: 30px;
+  height: 24px;
   place-items: center;
   border-radius: var(--pill);
   border: 1.5px solid var(--border);
@@ -727,10 +813,11 @@ button:disabled {
 }
 
 .target-milestone button,
-.ledger-amount button {
+.daily-ledger-row button {
   display: grid;
-  width: 44px;
-  height: 44px;
+  width: 36px;
+  height: 100%;
+  min-height: 36px;
   place-items: center;
   border: 1.5px solid transparent;
   border-radius: 10px;
@@ -743,20 +830,20 @@ button:disabled {
 }
 
 .target-milestone button:hover,
-.ledger-amount button:hover {
+.daily-ledger-row button:hover {
   border-color: var(--danger-border);
   background: var(--danger-bg);
   color: var(--danger);
 }
 
 .target-milestone button:disabled,
-.ledger-amount button:disabled {
+.daily-ledger-row button:disabled {
   cursor: not-allowed;
   opacity: 0.4;
 }
 
 .target-milestone button:disabled:hover,
-.ledger-amount button:disabled:hover {
+.daily-ledger-row button:disabled:hover {
   border-color: transparent;
   background: transparent;
   color: var(--faint);
@@ -766,27 +853,41 @@ button:disabled {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 10px;
-  margin-top: 16px;
+  margin-top: 14px;
   border-top: 1.5px dashed var(--border);
-  padding-top: 16px;
+  padding-top: 14px;
 }
 
 /* Daily ledger */
 .daily-ledger-list {
   display: grid;
+  gap: 7px;
+}
+
+.daily-ledger-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 82px 36px;
   gap: 10px;
+  padding: 0 10px 2px;
+  color: var(--faint);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.daily-ledger-head span:nth-child(2) {
+  text-align: right;
 }
 
 .daily-ledger-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  min-height: 64px;
+  grid-template-columns: minmax(0, 1fr) 82px 36px;
+  min-height: 52px;
   align-items: center;
-  gap: 12px;
-  border-radius: var(--radius-md);
+  gap: 10px;
+  border-radius: 12px;
   border: 1.5px solid var(--border);
   background: var(--surface);
-  padding: 12px 14px;
+  padding: 8px 10px;
   transition:
     border-color 160ms ease,
     transform 140ms ease,
@@ -803,14 +904,16 @@ button:disabled {
   display: flex;
   min-width: 0;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
-.daily-date > svg {
+.daily-date-icon {
   flex: 0 0 auto;
-  width: 34px;
-  height: 34px;
-  padding: 8px;
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  padding: 7px;
   border-radius: 10px;
   border: 1.5px solid var(--border);
   background: var(--surface-warm);
@@ -820,7 +923,7 @@ button:disabled {
 .daily-date strong {
   display: block;
   color: var(--ink);
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 700;
 }
 
@@ -828,26 +931,17 @@ button:disabled {
   display: block;
   margin-top: 1px;
   color: var(--muted);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 600;
 }
 
-.ledger-amount {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.ledger-amount strong {
+.ledger-value {
+  justify-self: end;
   color: var(--ink);
   font-family: var(--font-display);
-  font-size: 1.0625rem;
+  font-size: 0.98rem;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
-}
-
-.ledger-amount > svg {
-  color: var(--faint);
 }
 
 /* ---------- Wheel ---------- */
@@ -1183,117 +1277,87 @@ button:disabled {
 .rewards-grid {
   display: grid;
   grid-template-columns: minmax(340px, 1.1fr) minmax(300px, 0.7fr);
-  gap: 20px;
+  gap: 18px;
   align-items: start;
-}
-
-.reward-editor .section-heading > svg {
-  background: var(--grape-soft);
-  color: var(--grape);
-}
-
-.history-panel .section-heading > svg {
-  background: var(--gold-soft);
-  color: var(--gold-deep);
 }
 
 .reward-list,
 .history-list {
-  margin-top: 18px;
+  margin-top: 14px;
   display: grid;
+  gap: 9px;
+}
+
+.reward-add-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 10px;
 }
 
-/* Reward cards — wide-swatch tile style */
+/* Reward cards */
 .reward-card {
   display: grid;
-  grid-template-columns: 52px minmax(0, 1fr) 52px;
-  min-height: 76px;
+  grid-template-columns: 14px minmax(0, 1fr) 34px;
+  min-height: 58px;
   align-items: center;
-  overflow: hidden;
-  border-radius: var(--radius);
-  border: 1.5px solid var(--ink);
+  gap: 10px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border);
   background: var(--surface);
-  box-shadow: var(--sh);
+  padding: 10px;
+  box-shadow: var(--sh-soft-sm);
   transition:
+    border-color 140ms cubic-bezier(0.22, 1, 0.36, 1),
     transform 140ms cubic-bezier(0.22, 1, 0.36, 1),
     box-shadow 160ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .reward-card:hover {
-  transform: translate(-1px, -2px);
-  box-shadow: var(--sh-lg);
+  border-color: var(--ink);
+  transform: translateY(-1px);
+  box-shadow: var(--sh-soft-sm);
 }
 
 .reward-card:active {
-  transform: translate(2px, 3px);
-  box-shadow: 1px 1px 0 var(--ink);
+  transform: translateY(0);
+  box-shadow: var(--sh-soft-sm);
 }
 
 .reward-swatch {
-  align-self: stretch;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 12px;
+  height: 34px;
+  border-radius: var(--pill);
   background: var(--slice, var(--primary));
-  border-right: 1.5px solid var(--ink);
-}
-
-.reward-swatch-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: oklch(1 0 0 / 0.55);
-  border: 1.5px solid oklch(1 0 0 / 0.35);
+  box-shadow: inset 0 0 0 1.5px oklch(0.195 0.03 274 / 0.16);
 }
 
 .reward-body {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  display: grid;
+  gap: 2px;
   min-width: 0;
-  padding: 12px 4px 12px 16px;
 }
 
 .reward-body strong {
   overflow: hidden;
   color: var(--ink);
   font-family: var(--font-display);
-  font-size: 1.05rem;
-  font-weight: 700;
+  font-size: 1rem;
+  font-weight: 750;
   letter-spacing: -0.01em;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.reward-odds {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  width: fit-content;
-  padding: 2px 8px 2px 4px;
-  border-radius: 999px;
-  background: oklch(from var(--slice, var(--primary)) l c h / 0.12);
+.reward-body span {
   color: var(--muted);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-}
-
-.reward-odds-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--slice, var(--primary));
-  flex-shrink: 0;
 }
 
 .reward-remove {
   display: grid;
-  margin-right: 8px;
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
   place-items: center;
   border: 1.5px solid transparent;
   border-radius: 10px;
@@ -1314,14 +1378,14 @@ button:disabled {
 /* Reward shelf (history) */
 .trophy-row {
   display: grid;
-  grid-template-columns: 48px minmax(0, 1fr);
-  min-height: 64px;
+  grid-template-columns: 14px minmax(0, 1fr);
+  min-height: 58px;
   align-items: center;
-  gap: 14px;
-  border-radius: var(--radius-md);
+  gap: 10px;
+  border-radius: 12px;
   border: 1.5px solid var(--border);
-  background: linear-gradient(100deg, var(--gold-soft) 0%, var(--surface) 55%);
-  padding: 12px 16px;
+  background: var(--surface);
+  padding: 10px;
   transition:
     border-color 160ms ease,
     box-shadow 160ms ease,
@@ -1329,58 +1393,22 @@ button:disabled {
 }
 
 .trophy-row:hover {
-  border-color: var(--gold-deep);
-  box-shadow: var(--sh-soft);
+  border-color: var(--ink);
+  box-shadow: var(--sh-soft-sm);
   transform: translateY(-1px);
 }
 
-.trophy-medal {
-  display: grid;
-  width: 48px;
-  height: 48px;
-  place-items: center;
-  border-radius: 50%;
-  border: 1.5px solid var(--ink);
-  background: linear-gradient(150deg, var(--gold), var(--gold-deep));
-  color: oklch(0.22 0.04 80);
-  font-family: var(--font-display);
-  font-size: 1.05rem;
-  font-weight: 800;
-  box-shadow: var(--sh);
-  flex-shrink: 0;
-}
-
-.trophy-body {
-  display: grid;
-  gap: 3px;
-  min-width: 0;
-}
-
-.trophy-body strong {
-  overflow: hidden;
-  color: var(--ink);
-  font-family: var(--font-display);
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.trophy-body span {
-  color: var(--muted);
-  font-size: 0.75rem;
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
+.shelf-swatch {
+  background: var(--gold);
 }
 
 /* Empty states */
 .empty-message {
   display: grid;
-  min-height: 160px;
+  min-height: 128px;
   place-items: center;
   align-content: center;
-  gap: 8px;
+  gap: 6px;
   border-radius: var(--radius-md);
   border: 1.5px dashed var(--border-strong);
   background:
@@ -1390,17 +1418,17 @@ button:disabled {
       transparent 44%
     ),
     linear-gradient(180deg, var(--surface), var(--surface-strong));
-  padding: 28px 22px;
+  padding: 22px 18px;
   text-align: center;
 }
 
 .empty-message svg {
   display: block;
-  width: 46px;
-  height: 46px;
+  width: 38px;
+  height: 38px;
   margin-bottom: 4px;
-  padding: 11px;
-  border-radius: 14px;
+  padding: 9px;
+  border-radius: 11px;
   border: 1.5px solid var(--ink);
   background: var(--surface);
   color: var(--primary-active);
@@ -1412,7 +1440,7 @@ button:disabled {
   max-width: 24ch;
   color: var(--ink);
   font-family: var(--font-display);
-  font-size: 1.125rem;
+  font-size: 1.02rem;
   font-weight: 750;
   letter-spacing: -0.01em;
   line-height: 1.15;
@@ -1422,7 +1450,7 @@ button:disabled {
   display: block;
   max-width: 34ch;
   color: var(--muted);
-  font-size: 0.875rem;
+  font-size: 0.82rem;
   font-weight: 500;
   line-height: 1.45;
 }
@@ -1649,23 +1677,23 @@ button:disabled {
     padding: 16px;
   }
 
-  .section-heading {
+  .panel-heading {
     gap: 10px;
     margin-bottom: 14px;
+    padding-bottom: 12px;
   }
 
-  .section-heading > svg {
-    width: 36px;
-    height: 36px;
-    padding: 8px;
-    border-radius: 11px;
+  .panel-icon {
+    width: 34px;
+    height: 34px;
+    padding: 7px;
   }
 
-  .section-heading h2 {
+  .panel-title h2 {
     font-size: 1.08rem;
   }
 
-  .section-heading p {
+  .panel-title p {
     font-size: 0.78rem;
   }
 
@@ -1676,52 +1704,57 @@ button:disabled {
     gap: 8px;
   }
 
-  .inline-form,
+  .reward-add-form,
   .target-add-form,
   .daily-form {
     grid-template-columns: 1fr;
   }
 
   .target-milestone {
-    grid-template-columns: minmax(0, 1fr) 52px;
+    grid-template-columns: 34px minmax(0, 1fr) 40px;
     min-height: 0;
-    gap: 8px 10px;
+    gap: 8px;
     border-radius: 12px;
-    padding: 11px 12px 11px 18px;
+    padding: 11px 12px;
+  }
+
+  .target-rung {
+    width: 34px;
+    height: 34px;
+    font-size: 0.82rem;
   }
 
   .target-milestone button {
-    grid-column: 2;
+    grid-column: 3;
     grid-row: 1;
     justify-self: end;
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 100%;
   }
 
-  .target-copy {
-    grid-column: 1;
+  .target-main {
+    grid-column: 2;
     min-width: 0;
   }
 
-  .target-copy span {
-    margin-bottom: 1px;
-    font-size: 0.625rem;
+  .target-topline {
+    align-items: center;
   }
 
-  .target-copy strong {
+  .target-topline strong {
     font-size: 1.05rem;
   }
 
+  .target-progress-line {
+    grid-template-columns: minmax(0, 1fr) 48px;
+  }
+
   .target-meter {
-    grid-column: 1;
-    grid-row: 2;
     height: 10px;
   }
 
   .target-percent {
-    grid-column: 2;
-    grid-row: 2;
-    width: 52px;
+    width: 48px;
     min-width: 0;
     height: 28px;
   }
@@ -1732,11 +1765,24 @@ button:disabled {
   }
 
   .daily-ledger-row {
+    grid-template-columns: minmax(0, 1fr) auto 36px;
     min-height: 56px;
     padding: 10px 12px;
   }
 
-  .daily-date > svg {
+  .daily-ledger-head {
+    display: none;
+  }
+
+  .ledger-value {
+    grid-column: 2;
+  }
+
+  .daily-ledger-row button {
+    grid-column: 3;
+  }
+
+  .daily-date-icon {
     width: 32px;
     height: 32px;
     padding: 7px;
@@ -1771,13 +1817,13 @@ button:disabled {
   }
 
   .reward-card {
-    grid-template-columns: 42px minmax(0, 1fr) 50px;
-    min-height: 66px;
-    border-radius: 16px;
+    grid-template-columns: 12px minmax(0, 1fr) 38px;
+    min-height: 62px;
+    border-radius: 12px;
   }
 
   .reward-body {
-    padding: 10px 4px 10px 12px;
+    padding: 0;
   }
 
   .reward-body strong {
@@ -1788,11 +1834,6 @@ button:disabled {
     min-height: 58px;
     gap: 10px;
     padding: 10px 12px;
-  }
-
-  .trophy-medal {
-    width: 42px;
-    height: 42px;
   }
 
   .empty-message {

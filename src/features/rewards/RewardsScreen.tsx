@@ -22,20 +22,22 @@ export function RewardsScreen({
   rewards: RewardItem[]
   setRewardLabel: (value: string) => void
 }) {
-  const sliceCount = rewards.length
-
   return (
     <div className="rewards-grid">
       <section className="reward-editor">
-        <div className="section-heading">
-          <Gift aria-hidden="true" size={20} />
-          <div>
-            <h2>Rewards to win</h2>
-            <p>Each reward gets one equal slice of the wheel.</p>
+        <div className="panel-heading">
+          <div className="panel-title">
+            <span className="panel-icon panel-icon-reward">
+              <Gift aria-hidden="true" size={18} />
+            </span>
+            <div>
+              <h2>Rewards to win</h2>
+              <p>Each reward gets one equal slice of the wheel.</p>
+            </div>
           </div>
         </div>
         <form
-          className="inline-form"
+          className="reward-add-form"
           onSubmit={(event) => {
             event.preventDefault()
             addReward()
@@ -61,20 +63,11 @@ export function RewardsScreen({
                 <span
                   className="reward-swatch"
                   style={{ '--slice': color } as React.CSSProperties}
-                >
-                  <span className="reward-swatch-dot" />
-                </span>
+                  aria-hidden="true"
+                />
                 <div className="reward-body">
                   <strong>{reward.label}</strong>
-                  <span
-                    className="reward-odds"
-                    style={{ '--slice': color } as React.CSSProperties}
-                  >
-                    <span className="reward-odds-dot" />
-                    {sliceCount > 1
-                      ? `1 in ${sliceCount}`
-                      : 'Always wins'}
-                  </span>
+                  <span>Slot {index + 1}</span>
                 </div>
                 <button
                   className="reward-remove"
@@ -98,22 +91,24 @@ export function RewardsScreen({
       </section>
 
       <section className="history-panel">
-        <div className="section-heading">
-          <Trophy aria-hidden="true" size={20} />
-          <div>
-            <h2>Reward shelf</h2>
-            <p>Every reward the wheel has handed you, kept on display.</p>
+        <div className="panel-heading">
+          <div className="panel-title">
+            <span className="panel-icon panel-icon-shelf">
+              <Trophy aria-hidden="true" size={18} />
+            </span>
+            <div>
+              <h2>Reward shelf</h2>
+              <p>Every reward the wheel has handed you, kept on display.</p>
+            </div>
           </div>
         </div>
         <div className="history-list">
-          {history.map((item, index) => (
+          {history.map((item) => (
             <div className="trophy-row" key={item.id}>
-              <span className="trophy-medal">
-                {history.length - index}
-              </span>
-              <div className="trophy-body">
+              <span className="reward-swatch shelf-swatch" aria-hidden="true" />
+              <div className="reward-body">
                 <strong>{item.rewardLabel}</strong>
-                <span>Won on {formatDate(item.createdAt)}</span>
+                <span>{formatDate(item.createdAt)}</span>
               </div>
             </div>
           ))}
