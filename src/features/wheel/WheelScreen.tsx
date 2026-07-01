@@ -13,6 +13,12 @@ type DragState = {
   lastRotation: number
   lastTime: number
   velocity: number
+  velocitySamples: VelocitySample[]
+}
+
+type VelocitySample = {
+  time: number
+  velocity: number
 }
 
 type ConfettiParticle = {
@@ -38,29 +44,33 @@ type ConfettiParticle = {
 
 const CONFETTI_COLORS = ['#f97316', '#a855f7', '#06b6d4', '#eab308', '#ec4899', '#22c55e', '#f43f5e', '#3b82f6']
 
-// A dense canvas confetti cannon. Thousands of pieces are launched from the
-// click point with real launch velocity, then pulled down by gravity with air
-// drag and a fluttering tilt — like a real-life confetti burst.
-const CONFETTI_COUNT = 6000
+// A short canvas burst. Keeping the count restrained makes the celebration feel
+// faster because the browser is not trying to draw thousands of pieces per frame.
+const CONFETTI_COUNT = 5000
+const CONFETTI_FRAME_MS = 1000 / 60
+const CONFETTI_MAX_FRAME_STEP = 2.4
 
 const MIN_FLICK_VELOCITY = 0.12
 const MAX_FLICK_VELOCITY = 2.8
-const FRICTION_PER_MS = 0.999
-const STOP_VELOCITY = 0.018
+const RELEASE_SAMPLE_WINDOW_MS = 120
+const RELEASE_VELOCITY_BOOST = 1.85
+const SPIN_DECAY_PER_MS = 0.999
+const REST_VELOCITY = 0.002
+const MAX_SPIN_DURATION_MS = 7600
 
 function createConfettiBurst(originX: number, originY: number): ConfettiParticle[] {
   const particles: ConfettiParticle[] = []
   for (let i = 0; i < CONFETTI_COUNT; i += 1) {
     // Launch in an upward fan: straight up (-90°) with a wide spread sideways.
-    const angle = -Math.PI / 2 + (Math.random() - 0.5) * (Math.PI * 0.9)
-    const speed = 7 + Math.random() * 21
+    const angle = -Math.PI / 2 + (Math.random() - 0.5) * (Math.PI * 1.05)
+    const speed = 12 + Math.random() * 30
     particles.push({
       x: originX + (Math.random() - 0.5) * 24,
       y: originY + (Math.random() - 0.5) * 12,
       vx: Math.cos(angle) * speed,
       vy: Math.sin(angle) * speed,
-      gravity: 0.26 + Math.random() * 0.14,
-      drag: 0.984 + Math.random() * 0.012,
+      gravity: 0.42 + Math.random() * 0.22,
+      drag: 0.972 + Math.random() * 0.014,
       w: 5 + Math.random() * 7,
       h: 7 + Math.random() * 9,
       color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
@@ -69,9 +79,9 @@ function createConfettiBurst(originX: number, originY: number): ConfettiParticle
       tilt: Math.random() * Math.PI * 2,
       tiltSpeed: (Math.random() - 0.5) * 0.28,
       wobble: Math.random() * Math.PI * 2,
-      wobbleSpeed: 0.04 + Math.random() * 0.06,
+      wobbleSpeed: 0.06 + Math.random() * 0.08,
       life: 0,
-      maxLife: 200 + Math.random() * 160,
+      maxLife: 76 + Math.random() * 84,
       dead: false,
     })
   }
@@ -110,6 +120,7 @@ export function WheelScreen({
     lastRotation: 0,
     lastTime: 0,
     velocity: 0,
+    velocitySamples: [],
   })
   const [isDragging, setIsDragging] = useState(false)
   const [hint, setHint] = useState('Grab the wheel and flick it.')
@@ -150,23 +161,29 @@ export function WheelScreen({
 
     const particles = createConfettiBurst(originX, originY)
     if (confettiRafRef.current) cancelAnimationFrame(confettiRafRef.current)
+    let lastFrameTime = performance.now()
 
-    const step = () => {
+    const step = (now: number) => {
+      const frameStep = Math.min(
+        CONFETTI_MAX_FRAME_STEP,
+        Math.max(0.5, (now - lastFrameTime) / CONFETTI_FRAME_MS),
+      )
+      lastFrameTime = now
       ctx.clearRect(0, 0, width, height)
       let alive = 0
 
       for (const p of particles) {
         if (p.dead) continue
 
-        p.life += 1
-        p.vy += p.gravity
-        p.vx *= p.drag
-        p.vy *= p.drag
-        p.wobble += p.wobbleSpeed
-        p.x += p.vx + Math.sin(p.wobble) * 0.9
-        p.y += p.vy
-        p.rot += p.spin
-        p.tilt += p.tiltSpeed
+        p.life += frameStep
+        p.vy += p.gravity * frameStep
+        p.vx *= Math.pow(p.drag, frameStep)
+        p.vy *= Math.pow(p.drag, frameStep)
+        p.wobble += p.wobbleSpeed * frameStep
+        p.x += (p.vx + Math.sin(p.wobble) * 1.15) * frameStep
+        p.y += p.vy * frameStep
+        p.rot += p.spin * frameStep
+        p.tilt += p.tiltSpeed * frameStep
 
         const fadeStart = p.maxLife * 0.7
         const opacity =
@@ -220,6 +237,7 @@ export function WheelScreen({
       lastRotation: rotationRef.current,
       lastTime: performance.now(),
       velocity: 0,
+      velocitySamples: [],
     }
     setHint('Release with speed.')
     setIsDragging(true)
@@ -233,13 +251,21 @@ export function WheelScreen({
     const delta = shortestAngleDelta(angle, dragRef.current.lastAngle)
     const elapsed = Math.max(1, now - dragRef.current.lastTime)
     const nextRotation = dragRef.current.lastRotation + delta
+    const velocity = delta / elapsed
+    const velocitySamples = [
+      ...dragRef.current.velocitySamples.filter(
+        (sample) => now - sample.time <= RELEASE_SAMPLE_WINDOW_MS,
+      ),
+      { time: now, velocity },
+    ]
 
     dragRef.current = {
       active: true,
       lastAngle: angle,
       lastRotation: nextRotation,
       lastTime: now,
-      velocity: delta / elapsed,
+      velocity,
+      velocitySamples,
     }
     rotationRef.current = nextRotation
     setRotation(nextRotation)
@@ -252,12 +278,14 @@ export function WheelScreen({
     dragRef.current.active = false
     setIsDragging(false)
 
-    if (Math.abs(dragRef.current.velocity) < MIN_FLICK_VELOCITY) {
+    const releaseVelocity = getReleaseVelocity(dragRef.current, performance.now())
+
+    if (Math.abs(releaseVelocity) < MIN_FLICK_VELOCITY) {
       setHint('Flick faster to spend a spin.')
       return
     }
 
-    beginPhysicalSpin(dragRef.current.velocity * 1.85)
+    beginPhysicalSpin(releaseVelocity * RELEASE_VELOCITY_BOOST)
   }
 
   function beginPhysicalSpin(rawVelocity: number) {
@@ -276,26 +304,35 @@ export function WheelScreen({
   }
 
   function animateSpin(initialVelocity: number) {
-    let velocity = initialVelocity
-    let lastTime = performance.now()
+    const startRotation = rotationRef.current
+    const startedAt = performance.now()
+    const decay = -Math.log(SPIN_DECAY_PER_MS)
+    const duration = Math.min(
+      MAX_SPIN_DURATION_MS,
+      Math.log(Math.abs(initialVelocity) / REST_VELOCITY) / decay,
+    )
+    const finalRotation =
+      startRotation +
+      (initialVelocity * (1 - Math.exp(-decay * duration))) / decay
 
     const step = (now: number) => {
-      const elapsed = Math.min(32, now - lastTime)
-      lastTime = now
-      velocity *= Math.pow(FRICTION_PER_MS, elapsed)
-
-      const nextRotation = rotationRef.current + velocity * elapsed
+      const elapsed = Math.min(duration, now - startedAt)
+      const travelled =
+        (initialVelocity * (1 - Math.exp(-decay * elapsed))) / decay
+      const nextRotation =
+        elapsed >= duration ? finalRotation : startRotation + travelled
       rotationRef.current = nextRotation
       setRotation(nextRotation)
 
-      if (Math.abs(velocity) > STOP_VELOCITY) {
+      if (elapsed < duration) {
         animationRef.current = requestAnimationFrame(step)
         return
       }
 
-      const reward = getRewardAtPointer(nextRotation, segments)
+      const reward = getRewardAtPointer(finalRotation, segments)
+      animationRef.current = null
       setHint('Grab the wheel and flick it.')
-      if (reward) completeSpin(reward, nextRotation)
+      if (reward) completeSpin(reward, finalRotation)
     }
 
     animationRef.current = requestAnimationFrame(step)
@@ -401,6 +438,26 @@ export function WheelScreen({
 
 function normalizeAngle(angle: number) {
   return ((angle % 360) + 360) % 360
+}
+
+function getReleaseVelocity(drag: DragState, releaseTime: number) {
+  if (drag.velocitySamples.length === 0) return drag.velocity
+
+  const recentSamples = drag.velocitySamples.filter(
+    (sample) => releaseTime - sample.time <= RELEASE_SAMPLE_WINDOW_MS,
+  )
+  if (recentSamples.length === 0) return 0
+
+  const weightedVelocity = recentSamples.reduce(
+    (total, sample, index) => total + sample.velocity * (index + 1),
+    0,
+  )
+  const totalWeight = recentSamples.reduce(
+    (total, _sample, index) => total + index + 1,
+    0,
+  )
+
+  return weightedVelocity / totalWeight
 }
 
 function shortestAngleDelta(next: number, previous: number) {

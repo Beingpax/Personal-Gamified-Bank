@@ -856,10 +856,10 @@ button:disabled {
   display: grid;
   grid-template-areas: 'copy wheel result';
   grid-template-columns:
-    minmax(240px, 0.6fr) minmax(420px, 1.1fr)
-    minmax(240px, 0.62fr);
+    minmax(200px, 0.56fr) minmax(360px, 1.08fr)
+    minmax(200px, 0.58fr);
   align-items: center;
-  gap: 22px;
+  gap: clamp(14px, 1.6vw, 22px);
   min-height: calc(100svh - 160px);
 }
 
@@ -874,6 +874,7 @@ button:disabled {
   padding: 26px;
   box-shadow: var(--sh-lg);
   position: relative;
+  min-width: 0;
 }
 
 .wheel-copy .panel-kicker {
@@ -905,9 +906,11 @@ button:disabled {
   position: relative;
   display: grid;
   aspect-ratio: 1;
-  width: min(100%, 680px);
+  width: min(100%, 660px);
+  justify-self: center;
   place-items: center;
-  padding: clamp(32px, 5vw, 56px);
+  padding: clamp(24px, 4.5vw, 52px);
+  isolation: isolate;
   touch-action: none;
   user-select: none;
 }
@@ -921,16 +924,16 @@ button:disabled {
 }
 
 .wheel-panel::before {
-  inset: 6%;
+  inset: 7%;
   border: 1px solid oklch(0.7 0.14 84 / 0.65);
   box-shadow:
-    inset 0 0 0 10px var(--gold-soft),
-    inset 0 0 0 13px var(--ink),
-    0 26px 34px oklch(0.195 0.03 274 / 0.18);
+    inset 0 0 0 8px var(--gold-soft),
+    inset 0 0 0 11px var(--ink),
+    0 20px 28px oklch(0.195 0.03 274 / 0.16);
 }
 
 .wheel-panel::after {
-  inset: 13%;
+  inset: 15%;
   border: 1px solid oklch(1 0 0 / 0.48);
   background:
     radial-gradient(
@@ -949,7 +952,7 @@ button:disabled {
 
 .wheel-aura {
   position: absolute;
-  inset: 12%;
+  inset: 16%;
   border-radius: 999px;
   background: repeating-conic-gradient(
     from 0deg,
@@ -957,7 +960,7 @@ button:disabled {
     oklch(0.72 0.14 84 / 0.24) 8deg 10deg,
     transparent 10deg 18deg
   );
-  opacity: 0.7;
+  opacity: 0.55;
   pointer-events: none;
 }
 
@@ -1006,15 +1009,15 @@ button:disabled {
 .wheel {
   position: relative;
   z-index: 1;
-  width: min(100%, 570px);
-  height: min(100%, 570px);
+  width: min(100%, 560px);
+  aspect-ratio: 1;
   border-radius: 999px;
   box-shadow:
     0 0 0 8px var(--gold-soft),
     0 0 0 14px var(--gold),
     0 0 0 17px var(--ink),
-    0 26px 0 var(--ink),
-    0 36px 40px oklch(0.195 0.03 274 / 0.34);
+    0 20px 0 var(--ink),
+    0 30px 34px oklch(0.195 0.03 274 / 0.28);
   transition: transform 140ms cubic-bezier(0.22, 1, 0.36, 1);
   will-change: transform;
 }
@@ -1436,6 +1439,40 @@ button:disabled {
 
 /* ---------- Responsive ---------- */
 
+@media (max-width: 1320px) {
+  .wheel-layout {
+    grid-template-areas:
+      'copy result'
+      'wheel wheel';
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    min-height: auto;
+  }
+
+  .wheel-panel {
+    width: min(100%, 620px);
+    padding: clamp(22px, 4vw, 44px);
+  }
+
+  .wheel-copy,
+  .result-panel {
+    align-content: center;
+    padding: 22px;
+  }
+
+  .wheel-copy strong {
+    font-size: 4.75rem;
+  }
+
+  .result-panel {
+    min-height: 180px;
+  }
+
+  .quiet-result {
+    min-height: 128px;
+  }
+}
+
 @media (max-width: 1180px) {
   .app-shell {
     grid-template-columns: 1fr;
@@ -1478,24 +1515,6 @@ button:disabled {
   .targets-grid,
   .rewards-grid {
     grid-template-columns: 1fr;
-  }
-
-  .wheel-layout {
-    grid-template-areas:
-      'wheel copy'
-      'wheel result';
-    grid-template-columns: minmax(440px, 1fr) minmax(240px, 0.46fr);
-    align-items: stretch;
-  }
-
-  .wheel-panel {
-    margin-inline: auto;
-    width: min(100%, 620px);
-  }
-
-  .wheel-copy,
-  .result-panel {
-    align-content: center;
   }
 }
 
@@ -1737,6 +1756,7 @@ button:disabled {
 
   .wheel-panel {
     width: 100%;
+    max-width: 520px;
     padding: 16px;
   }
 
@@ -1744,6 +1764,10 @@ button:disabled {
   .result-panel {
     border-radius: 16px;
     padding: 18px;
+  }
+
+  .result-panel {
+    min-height: auto;
   }
 
   .reward-card {
