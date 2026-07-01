@@ -3,29 +3,30 @@ import { Lock, Trash2 } from 'lucide-react'
 import { formatCurrency } from '../../app/format'
 import type { TargetMilestoneStatus } from '../../app/targetProgress'
 import type { MoneyTarget } from '../../app/types'
+import { ConfirmDialog } from '../../components/shared/ConfirmDialog'
 import { cn } from '../../lib/utils'
 
 export function TargetMilestone({
-  index,
   onRemove,
   progress,
   status,
   target,
 }: {
-  index: number
   onRemove: () => void
   progress: number
   status: TargetMilestoneStatus
   target: MoneyTarget
 }) {
   const rewardGranted = status === 'reward-granted'
-  const milestoneLocked = status === 'locked'
   const complete = status === 'completed' || rewardGranted
+  const progressValue = Math.round(progress)
+  const progressLabel =
+    status === 'completed' ? 'Spin ready' : `${progressValue}%`
   const [confirmingRemove, setConfirmingRemove] = useState(false)
 
   function confirmRemove() {
-    onRemove()
     setConfirmingRemove(false)
+    onRemove()
   }
 
   return (
@@ -33,38 +34,27 @@ export function TargetMilestone({
       className={cn(
         'target-milestone',
         complete && 'target-complete',
-        (rewardGranted || milestoneLocked) && 'target-locked',
+        rewardGranted && 'target-locked',
       )}
     >
-      <span className="target-rung">{index + 1}</span>
       <div className="target-main">
         <div className="target-topline">
           <strong>{formatCurrency(target.amount)}</strong>
+          <span className="target-progress-value">{progressLabel}</span>
         </div>
-        <div className="target-progress-line">
-          <div className="target-meter" aria-hidden="true">
-            <div style={{ width: `${progress}%` }} />
-          </div>
-          <span className="target-percent">
-            {rewardGranted || milestoneLocked ? (
-              <Lock aria-hidden="true" size={13} />
-            ) : (
-              `${Math.round(progress)}%`
-            )}
-          </span>
+        <div
+          aria-label={`${formatCurrency(target.amount)} target progress`}
+          aria-valuemax={100}
+          aria-valuemin={0}
+          aria-valuenow={progressValue}
+          aria-valuetext={progressLabel}
+          className="target-meter"
+          role="progressbar"
+        >
+          <div style={{ width: `${progress}%` }} />
         </div>
       </div>
-      {confirmingRemove ? (
-        <div className="row-confirm target-confirm">
-          <span>Remove?</span>
-          <button onClick={confirmRemove} type="button">
-            Yes
-          </button>
-          <button onClick={() => setConfirmingRemove(false)} type="button">
-            No
-          </button>
-        </div>
-      ) : rewardGranted ? (
+      {rewardGranted ? (
         <span
           aria-label={`${formatCurrency(target.amount)} target is locked because a reward was granted`}
           className="row-action row-action-locked"
@@ -83,6 +73,13 @@ export function TargetMilestone({
           <Trash2 aria-hidden="true" size={15} />
         </button>
       )}
+      <ConfirmDialog
+        description={`${formatCurrency(target.amount)} will be removed from your future money targets.`}
+        onCancel={() => setConfirmingRemove(false)}
+        onConfirm={confirmRemove}
+        open={confirmingRemove}
+        title="Remove money target?"
+      />
     </div>
   )
 }

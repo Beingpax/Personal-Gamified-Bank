@@ -4,6 +4,7 @@ import { Gift, ListPlus, Trash2, Trophy } from 'lucide-react'
 import { segmentColors } from '../../app/constants'
 import { formatDate } from '../../app/format'
 import type { RewardHistoryItem, RewardItem } from '../../app/types'
+import { ConfirmDialog } from '../../components/shared/ConfirmDialog'
 import { EmptyMessage } from '../../components/shared/EmptyMessage'
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
@@ -26,6 +27,9 @@ export function RewardsScreen({
   const [confirmingRewardId, setConfirmingRewardId] = useState<string | null>(
     null,
   )
+  const rewardToRemove = rewards.find(
+    (reward) => reward.id === confirmingRewardId,
+  )
 
   function confirmRemoveReward(id: string) {
     removeReward(id)
@@ -33,7 +37,8 @@ export function RewardsScreen({
   }
 
   return (
-    <div className="rewards-grid">
+    <>
+      <div className="rewards-grid">
       <section className="reward-editor">
         <div className="panel-heading">
           <div className="panel-title">
@@ -61,32 +66,14 @@ export function RewardsScreen({
                   <strong>{reward.label}</strong>
                   <span>Slot {index + 1}</span>
                 </div>
-                {confirmingRewardId === reward.id ? (
-                  <div className="row-confirm reward-confirm">
-                    <span>Remove?</span>
-                    <button
-                      onClick={() => confirmRemoveReward(reward.id)}
-                      type="button"
-                    >
-                      Yes
-                    </button>
-                    <button
-                      onClick={() => setConfirmingRewardId(null)}
-                      type="button"
-                    >
-                      No
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    className="row-action row-action-danger reward-remove"
-                    aria-label={`Remove ${reward.label}`}
-                    onClick={() => setConfirmingRewardId(reward.id)}
-                    type="button"
-                  >
-                    <Trash2 aria-hidden="true" size={15} />
-                  </button>
-                )}
+                <button
+                  className="row-action row-action-danger reward-remove"
+                  aria-label={`Remove ${reward.label}`}
+                  onClick={() => setConfirmingRewardId(reward.id)}
+                  type="button"
+                >
+                  <Trash2 aria-hidden="true" size={15} />
+                </button>
               </div>
             )
           })}
@@ -158,6 +145,20 @@ export function RewardsScreen({
           )}
         </div>
       </section>
-    </div>
+      </div>
+      <ConfirmDialog
+        description={
+          rewardToRemove
+            ? `${rewardToRemove.label} will be removed from rewards to win.`
+            : ''
+        }
+        onCancel={() => setConfirmingRewardId(null)}
+        onConfirm={() => {
+          if (rewardToRemove) confirmRemoveReward(rewardToRemove.id)
+        }}
+        open={Boolean(rewardToRemove)}
+        title="Remove reward?"
+      />
+    </>
   )
 }

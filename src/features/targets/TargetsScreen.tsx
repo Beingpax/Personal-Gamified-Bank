@@ -11,6 +11,7 @@ import { useState } from 'react'
 import { formatCurrency, formatDay } from '../../app/format'
 import type { TargetMilestoneView } from '../../app/targetProgress'
 import type { DailyLog, MoneyTarget } from '../../app/types'
+import { ConfirmDialog } from '../../components/shared/ConfirmDialog'
 import { EmptyMessage } from '../../components/shared/EmptyMessage'
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
@@ -65,11 +66,12 @@ export function TargetsScreen({
     string | null
   >(null)
   const visibleTargets = targets
-    .filter(
-      ({ status }) => status !== 'completed' && status !== 'reward-granted',
-    )
+    .filter(({ status }) => status !== 'reward-granted')
     .slice(0, 4)
   const visibleDailyLogEntries = dailyLogEntries.slice(0, 7)
+  const dailyLogToRemove = visibleDailyLogEntries.find(
+    ({ log }) => log.id === confirmingDailyLogId,
+  )?.log
 
   function confirmRemoveDailyLog(id: string) {
     onRemoveDailyLog(id)
@@ -77,7 +79,8 @@ export function TargetsScreen({
   }
 
   return (
-    <div className="targets-grid">
+    <>
+      <div className="targets-grid">
       <section className="money-panel">
         <div>
           <p className="panel-kicker">Bank</p>
@@ -155,10 +158,9 @@ export function TargetsScreen({
           )}
         >
           {visibleTargets.length > 0 ? (
-            visibleTargets.map(({ target, status, progress }, index) => (
+            visibleTargets.map(({ target, status, progress }) => (
               <TargetMilestone
                 key={target.id}
-                index={index}
                 onRemove={() => onRemoveTarget(target.id)}
                 progress={progress}
                 status={status}
@@ -232,9 +234,6 @@ export function TargetsScreen({
                 key={log.id}
               >
                 <div className="daily-date">
-                  <span className="daily-date-icon">
-                    <CalendarDays aria-hidden="true" size={16} />
-                  </span>
                   <div>
                     <strong>{formatDay(log.date)}</strong>
                     <span>{log.date}</span>
@@ -243,23 +242,7 @@ export function TargetsScreen({
                 <strong className="ledger-value">
                   {formatCurrency(log.amount)}
                 </strong>
-                {confirmingDailyLogId === log.id ? (
-                  <div className="row-confirm daily-confirm">
-                    <span>Remove?</span>
-                    <button
-                      onClick={() => confirmRemoveDailyLog(log.id)}
-                      type="button"
-                    >
-                      Yes
-                    </button>
-                    <button
-                      onClick={() => setConfirmingDailyLogId(null)}
-                      type="button"
-                    >
-                      No
-                    </button>
-                  </div>
-                ) : locked ? (
+                {locked ? (
                   <span
                     aria-label={`${log.date} is locked because a reward was granted`}
                     className="row-action row-action-locked"
@@ -290,7 +273,23 @@ export function TargetsScreen({
           )}
         </div>
       </section>
-    </div>
+      </div>
+      <ConfirmDialog
+        description={
+          dailyLogToRemove
+            ? `${formatDay(dailyLogToRemove.date)} (${formatCurrency(
+                dailyLogToRemove.amount,
+              )}) will be removed from your daily log.`
+            : ''
+        }
+        onCancel={() => setConfirmingDailyLogId(null)}
+        onConfirm={() => {
+          if (dailyLogToRemove) confirmRemoveDailyLog(dailyLogToRemove.id)
+        }}
+        open={Boolean(dailyLogToRemove)}
+        title="Remove daily log?"
+      />
+    </>
   )
 }
 
