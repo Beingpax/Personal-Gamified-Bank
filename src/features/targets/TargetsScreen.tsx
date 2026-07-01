@@ -116,9 +116,9 @@ export function TargetsScreen({
           }}
         >
           <label className="field-label">
-            Dollars on today
+            Dollar earned today
             <Input
-              aria-label="Dollars on today"
+              aria-label="Dollar earned today"
               disabled={dailyLogForm.selectedLogIsLocked}
               min={0}
               type="number"
